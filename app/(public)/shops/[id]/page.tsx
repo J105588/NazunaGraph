@@ -4,6 +4,7 @@ import LuxuriousBackground from '../../components/LuxuriousBackground'
 import { ItemWithDetails } from '@/types'
 import Link from 'next/link'
 import { ArrowLeft } from 'lucide-react'
+import Image from 'next/image'
 
 export const dynamic = 'force-dynamic'
 
@@ -62,11 +63,12 @@ export default async function ShopPage({ params }: { params: Promise<{ id: strin
                     {/* Hero Image */}
                     {profile?.image_url && (
                         <div className="w-full aspect-[21/9] md:aspect-[3/1] bg-black/30 rounded-2xl overflow-hidden border border-white/10 mt-8 mb-8 relative">
-                            {/* eslint-disable-next-line @next/next/no-img-element */}
-                            <img
+                            <Image
                                 src={profile.image_url}
                                 alt={shopName}
-                                className="w-full h-full object-cover opacity-80"
+                                fill
+                                className="object-cover opacity-80"
+                                priority
                             />
                             <div className="absolute inset-0 bg-gradient-to-t from-[#121212] via-transparent to-transparent opacity-50" />
                         </div>
