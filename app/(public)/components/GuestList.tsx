@@ -122,13 +122,12 @@ export default function GuestList({ initialItems }: { initialItems: ItemWithDeta
                                 </div>
                                 <div className="mt-3 md:mt-4 pt-3 md:pt-4 border-t border-white/5 flex justify-between items-center text-[10px] md:text-xs text-gray-600 font-light">
                                     <span>ID: {item.id.slice(0, 4)}</span>
-                                    <span className="hidden md:inline">Last Updated</span>
                                 </div>
                             </div>
                         </motion.div>
                     ))}
                 </AnimatePresence>
             </div>
-        </div>
+        </div >
     )
 }
