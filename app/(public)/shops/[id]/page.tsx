@@ -60,19 +60,7 @@ export default async function ShopPage({ params }: { params: Promise<{ id: strin
                         </p>
                     )}
 
-                    {/* Hero Image */}
-                    {profile?.image_url && (
-                        <div className="w-full aspect-[21/9] md:aspect-[3/1] bg-black/30 rounded-2xl overflow-hidden border border-white/10 mt-8 mb-8 relative">
-                            <Image
-                                src={profile.image_url}
-                                alt={shopName}
-                                fill
-                                className="object-cover opacity-80"
-                                priority
-                            />
-                            <div className="absolute inset-0 bg-gradient-to-t from-[#121212] via-transparent to-transparent opacity-50" />
-                        </div>
-                    )}
+
                 </header>
 
                 <GuestList initialItems={shopItems} />

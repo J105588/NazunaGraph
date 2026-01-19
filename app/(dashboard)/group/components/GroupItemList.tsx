@@ -128,7 +128,6 @@ export default function GroupItemList({ userId }: { userId: string }) {
 
     return (
         <div className="space-y-8">
-            <Toaster position="bottom-right" />
 
             <ItemFormModal
                 isOpen={isModalOpen}

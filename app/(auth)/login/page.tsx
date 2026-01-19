@@ -50,7 +50,7 @@ export default function LoginPage() {
                 className="w-full max-w-md art-card p-12"
             >
                 <div className="text-center mb-12 space-y-4">
-                    <h2 className="text-2xl font-light tracking-widest text-white">関係者ログイン</h2>
+                    <h2 className="text-2xl font-light tracking-widest text-white">管理者ログイン</h2>
                     <p className="text-gray-500 text-xs tracking-wider font-light">
                         各団体・実行委員用ポータル
                     </p>
@@ -95,7 +95,7 @@ export default function LoginPage() {
                             disabled={loading}
                             className="art-btn w-full"
                         >
-                            {loading ? '認証中...' : '入室'}
+                            {loading ? '認証中...' : 'Login'}
                         </button>
                     </div>
                 </form>
