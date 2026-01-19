@@ -14,7 +14,7 @@ export default async function Home() {
                     <div className="text-center space-y-6 max-w-2xl mx-auto">
                         <AnimatedTitle />
                         <p className="text-gray-400 text-sm tracking-widest font-light">
-                            SELECT AN EXHIBITION TO VIEW MENU
+                            展示団体を選択してください
                         </p>
                     </div>
                 </header>

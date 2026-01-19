@@ -4,6 +4,7 @@ import { createClient } from '@/utils/supabase/client'
 import { useQuery } from '@tanstack/react-query'
 import { motion } from 'framer-motion'
 import Link from 'next/link'
+import Image from 'next/image'
 import { ArrowRight, Loader2 } from 'lucide-react'
 
 import { Category } from '@/types'
@@ -12,6 +13,7 @@ type GroupProfile = {
     id: string
     display_name: string | null
     group_name: string | null
+    image_url: string | null
     items: {
         status: {
             color: string
@@ -33,6 +35,7 @@ async function fetchGroups() {
             id,
             display_name,
             group_name,
+            image_url,
             category:categories (
                 id,
                 name,
@@ -99,12 +102,22 @@ export default function GroupList() {
 
     // Helper to determine group status
     const getGroupStatus = (items: GroupProfile['items']) => {
-        if (!items || items.length === 0) return { label: '準備中', color: 'bg-gray-600', borderColor: 'border-gray-600' }
+        if (!items || items.length === 0) return { label: '準備中', color: 'bg-gray-600', isPreparing: true }
+
+        // Check if ANY item is selling (Green/Teal/Emerald)
         const hasAvailable = items.some(i => i.status?.color.includes('green') || i.status?.color.includes('emerald') || i.status?.color.includes('teal'))
-        if (hasAvailable) return { label: '販売中', color: 'bg-emerald-500', borderColor: 'border-emerald-500' }
+        if (hasAvailable) return { label: '販売中', color: 'bg-emerald-500', isPreparing: false }
+
+        // Check if ANY item is low stock (Yellow/Orange)
         const hasFew = items.some(i => i.status?.color.includes('yellow') || i.status?.color.includes('orange'))
-        if (hasFew) return { label: '残りわずか', color: 'bg-orange-500', borderColor: 'border-orange-500' }
-        return { label: '完売 / 準備中', color: 'bg-red-500', borderColor: 'border-red-500' }
+        if (hasFew) return { label: '残りわずか', color: 'bg-orange-500', isPreparing: false }
+
+        // Check if ALL items are Preparing (Gray)
+        const allPreparing = items.every(i => i.status?.color.includes('gray'))
+        if (allPreparing) return { label: '準備中', color: 'bg-gray-600', isPreparing: true }
+
+        // Otherwise assume Sold Out (Red)
+        return { label: '完売', color: 'bg-red-500', isPreparing: false }
     }
 
     return (
@@ -123,6 +136,71 @@ export default function GroupList() {
                         {groupedGroups[catName].map((group, index) => {
                             const status = getGroupStatus(group.items)
 
+                            // Define the card content separately
+                            const CardContent = (
+                                <div className={`art-card group h-full flex flex-col justify-between transition-all duration-500 overflow-hidden ${status.isPreparing ? 'opacity-70 grayscale cursor-not-allowed' : 'group-hover:-translate-y-2 group-hover:shadow-2xl'}`}>
+
+                                    {/* Image Area - Artistic Aspect Ratio */}
+                                    <div className="relative aspect-[4/3] w-full overflow-hidden bg-black/20">
+                                        {group.image_url ? (
+                                            <Image
+                                                src={group.image_url}
+                                                alt={group.display_name || ''}
+                                                fill
+                                                className="object-cover transition-transform duration-1000 ease-out group-hover:scale-105 opacity-90 group-hover:opacity-100"
+                                                sizes="(max-width: 768px) 50vw, (max-width: 1200px) 33vw, 25vw"
+                                            />
+                                        ) : (
+                                            <div className="w-full h-full flex items-center justify-center text-gray-700 font-thin text-2xl md:text-4xl">
+                                                <span className="text-4xl opacity-20">🏫</span>
+                                            </div>
+                                        )}
+
+                                        {/* Prominent Status Badge */}
+                                        <div className="absolute top-0 right-0 z-20">
+                                            <span
+                                                className={`
+                                                    block px-2 py-1 md:px-4 md:py-2 text-[10px] md:text-xs font-bold text-white shadow-lg tracking-wider
+                                                    ${status.color}
+                                                    rounded-bl-xl md:rounded-bl-2xl backdrop-blur-md bg-opacity-90
+                                                `}
+                                            >
+                                                {status.label}
+                                            </span>
+                                        </div>
+                                    </div>
+
+                                    {/* Status Color Line */}
+                                    <div className={`h-1 w-full ${status.color}`} />
+
+                                    {/* Content Area */}
+                                    <div className="p-4 md:p-6 flex-1 flex flex-col justify-between">
+                                        <div>
+                                            <h3 className="text-xl md:text-2xl font-serif font-bold text-white mb-2 group-hover:text-transparent group-hover:bg-clip-text group-hover:bg-gradient-to-r group-hover:from-white group-hover:to-gray-400 transition-all line-clamp-2">
+                                                {group.display_name || group.group_name || 'Untitled Shop'}
+                                            </h3>
+
+                                            {group.display_name && (
+                                                <p className="text-sm text-gray-400 font-light tracking-wider uppercase border-l border-white/20 pl-3 mb-4">
+                                                    {group.group_name}
+                                                </p>
+                                            )}
+                                        </div>
+
+                                        <div className="mt-4 flex items-center justify-end text-sm text-gray-400 group-hover:text-white transition-colors border-t border-white/5 pt-4">
+                                            {status.isPreparing ? (
+                                                <span className="mr-2 tracking-widest text-xs">PREPARING</span>
+                                            ) : (
+                                                <>
+                                                    <span className="mr-2 tracking-widest text-xs">VIEW MENU</span>
+                                                    <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
+                                                </>
+                                            )}
+                                        </div>
+                                    </div>
+                                </div>
+                            )
+
                             return (
                                 <motion.div
                                     key={group.id}
@@ -130,36 +208,13 @@ export default function GroupList() {
                                     animate={{ opacity: 1, y: 0 }}
                                     transition={{ delay: index * 0.1 }}
                                 >
-                                    <Link href={`/shops/${group.id}`} className="group block relative h-full">
-                                        <div className="art-card h-full p-8 flex flex-col justify-between transition-all duration-500 group-hover:-translate-y-2 group-hover:shadow-2xl">
-                                            {/* Status Line */}
-                                            <div className={`absolute top-0 left-0 w-full h-1 ${status.color}`} />
-                                            <div className={`absolute bottom-0 right-0 w-1 h-full ${status.color} opacity-0 group-hover:opacity-100 transition-opacity duration-500`} />
-
-                                            <div>
-                                                <div className="flex justify-between items-start mb-4">
-                                                    <span className={`px-3 py-1 text-xs font-bold text-white rounded-full ${status.color} bg-opacity-80 backdrop-blur-md`}>
-                                                        {status.label}
-                                                    </span>
-                                                </div>
-
-                                                <h3 className="text-2xl font-serif font-bold text-white mb-2 group-hover:text-transparent group-hover:bg-clip-text group-hover:bg-gradient-to-r group-hover:from-white group-hover:to-gray-400 transition-all">
-                                                    {group.display_name || group.group_name || 'Untitled Shop'}
-                                                </h3>
-
-                                                {group.display_name && (
-                                                    <p className="text-sm text-gray-400 font-light tracking-wider uppercase border-l border-white/20 pl-3">
-                                                        {group.group_name}
-                                                    </p>
-                                                )}
-                                            </div>
-
-                                            <div className="mt-8 flex items-center justify-end text-sm text-gray-400 group-hover:text-white transition-colors">
-                                                <span className="mr-2 tracking-widest text-xs">VIEW MENU</span>
-                                                <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
-                                            </div>
-                                        </div>
-                                    </Link>
+                                    {status.isPreparing ? (
+                                        <div className="h-full block relative">{CardContent}</div>
+                                    ) : (
+                                        <Link href={`/shops/${group.id}`} className="group block relative h-full">
+                                            {CardContent}
+                                        </Link>
+                                    )}
                                 </motion.div>
                             )
                         })}
