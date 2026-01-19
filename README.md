@@ -1,36 +1,76 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# NazunaGraph
 
-## Getting Started
+デジタルネイチャー（Digital Nature）と禅（Zen）を融合させた、次世代のデジタル展示・在庫管理プラットフォームである。
+Next.js App RouterとSupabaseを基盤とし、リアルタイム性と没入感のあるUI/UXを提供する。
 
-First, run the development server:
+## システム概要
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+本システムは、展示会や即売会における「各ブース（団体）」と「展示物（商品）」を管理し、来場者（ゲスト）に対してリアルタイムなステータス情報を提供するWebアプリケーションだ。
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### 技術スタック
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+*   **Frontend**: Next.js 15 (App Router), React, Tailwind CSS, Framer Motion
+*   **Backend / Database**: Supabase (PostgreSQL, Auth, Storage, Realtime)
+*   **State Management**: TanStack Query (React Query)
+*   **UI Components**: Lucide React, Glassmorphism Design
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## 主要機能
 
-## Learn More
+### 1. パブリックビュー（ゲスト向け）
 
-To learn more about Next.js, take a look at the following resources:
+来場者がアクセスするフロントエンド画面。ログイン不要で閲覧可能。
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+*   **団体一覧表示**:
+    *   登録された展示団体をカテゴリ別に表示する。
+    *   **ステータス集計**: 各団体の商品ステータスを集計し、カード上に「販売中」「残りわずか」「完売」「準備中」を自動判定して表示する。
+    *   **準備中ロック**: 全商品が準備中の団体は、カードがグレーアウトされ、詳細ページへのアクセスが制限される。
+    *   **ビジュアル**: 4:3のアスペクト比を持つメインビジュアルを強調し、没入感を高めるデザインを採用。
+*   **店舗（団体）詳細**:
+    *   各団体のプロフィールと取扱アイテム一覧を表示する。
+    *   **リアルタイム更新**: Supabase Realtimeにより、在庫状況の変化（完売など）が即座に画面に反映される。
+    *   **ローディング演出**: "Digital Zen"をテーマにした独自のローディングアニメーション。
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+### 2. ダッシュボード（管理・運用者向け）
 
-## Deploy on Vercel
+関係者がログインして使用する管理画面。Supabase AuthとRLS（Row Level Security）により権限管理が徹底されている。
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+*   **管理者（Admin）**:
+    *   **全体管理**: 全てのユーザー、団体、アイテムの編集権限を持つ。
+    *   **ステータス定義**: 「販売中（緑）」「完売（赤）」などのステータス定義とその色分けを自由に設定可能。
+    *   **強制ロック**: 特定のアイテム等を編集不可にする管理者権限機能。
+*   **団体（Group）**:
+    *   **自社管理**: 自身のプロフィール（アイコン、説明文）とアイテムのみを編集可能。
+    *   **在庫操作**: 直感的なUIで商品のステータスを変更できる。
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## システムの仕組み
+
+### ステータス判定ロジック
+
+本システムの特徴的なロジックとして、フロントエンド側での動的なステータス判定がある。
+
+1.  **アイテム単位**: 各アイテムはDB上の `status_definitions` テーブルに紐づくステータスIDを持つ。
+2.  **グループ単位**: `GroupList` コンポーネントにおいて、所属するアイテムのステータス色（Color String）を解析し、以下の優先順位で団体の表示ステータスを決定する。
+    *   **販売中 (Selling)**: 緑・エメラルド・ティール系のステータスを持つアイテムが1つでもあれば「販売中」。
+    *   **残りわずか (Few Left)**: 黄・オレンジ系のステータスがあれば「残りわずか」。
+    *   **準備中 (Preparing)**: 全てのアイテムがグレー系のステータス、またはアイテムが0個の場合。この状態ではリンクが無効化される。
+    *   **完売 (Sold Out)**: 上記以外（赤系のみの場合など）。
+
+### データフローとセキュリティ
+
+*   **Serverside Fetching**: 初回ロード時はServer Components (`page.tsx`) がその時点のスナップショットを高速にレンダリングする。
+*   **Client-side Hydration & Subscription**: クライアントサイドで `useQuery` と `useRealtimeSubscription` が稼働し、バックグラウンドで最新データを監視・同期する。
+*   **RLS (Row Level Security)**:
+    *   `public` ロール: `items`, `profiles` の参照のみ許可。
+    *   `group` ロール: 自身の `owner_id` が一致するレコードの更新のみ許可。
+    *   `admin` ロール: 全レコードの操作が可能。
+
+## ディレクトリ構造
+
+*   `app/(public)`: ゲスト向け公開ページ。
+*   `app/(dashboard)`: 認証必須の管理画面。
+*   `app/(auth)`: ログイン・認証関連。
+*   `components`: 共通UIコンポーネント。
+*   `utils/supabase`: Supabaseクライアントの初期化（Server/Client）。
+
+---
+© 2026 市川学園 & Junxiang Jin. All rights reserved.
