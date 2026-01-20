@@ -1,9 +1,12 @@
 import { createClient } from '@/utils/supabase/server'
 import { redirect } from 'next/navigation'
+import UserManagement from './components/UserManagement'
 import AdminItemList from './components/AdminItemList'
 import StatusMaster from './components/StatusMaster'
 import CategoryMaster from './components/CategoryMaster'
-import UserManagement from './components/UserManagement'
+import MaintenanceControl from './components/MaintenanceControl'
+import SystemReset from './components/SystemReset'
+
 
 export default async function AdminDashboard() {
     const supabase = await createClient()
@@ -47,7 +50,8 @@ export default async function AdminDashboard() {
             </header>
 
             {/* Config Grid */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 md:gap-8">
+            {/* Config Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8">
                 <StatusMaster />
                 <CategoryMaster />
             </div>
@@ -57,6 +61,12 @@ export default async function AdminDashboard() {
 
             {/* Main Item List (Full Width) */}
             <AdminItemList />
+
+            {/* System Controls */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8">
+                <MaintenanceControl />
+                <SystemReset />
+            </div>
         </div>
     )
 }
