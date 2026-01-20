@@ -53,7 +53,7 @@ export default function GuestList({ initialItems }: { initialItems: ItemWithDeta
                     <Search className="absolute left-5 top-1/2 -translate-y-1/2 text-gray-500 h-5 w-5 transition-colors group-hover:text-white" />
                     <input
                         type="text"
-                        placeholder="検索 (展示団体、商品名...)"
+                        placeholder="検索"
                         className="art-input pl-14"
                         value={search}
                         onChange={(e) => setSearch(e.target.value)}
