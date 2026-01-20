@@ -31,7 +31,7 @@ export default function OpeningController({ children }: { children: React.ReactN
         }
     }, [])
 
-    if (!isMounted) return null // Prevent hydration mismatch
+    // if (!isMounted) return null // REMOVED
 
     return (
         <>
