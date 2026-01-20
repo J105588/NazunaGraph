@@ -16,6 +16,8 @@ export const metadata: Metadata = {
     description: 'Real-time Festival Status Dashboard',
 }
 
+import SessionGuard from './components/SessionGuard'
+
 export default function RootLayout({
     children,
 }: Readonly<{
@@ -24,7 +26,11 @@ export default function RootLayout({
     return (
         <html lang="ja">
             <body className={`${inter.className} ${mincho.variable} antialiased`} suppressHydrationWarning>
-                <Providers>{children}</Providers>
+                <Providers>
+                    <SessionGuard>
+                        {children}
+                    </SessionGuard>
+                </Providers>
             </body>
         </html>
     )
