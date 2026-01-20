@@ -1,8 +1,8 @@
 import { createClient } from '@/utils/supabase/server'
 import { redirect } from 'next/navigation'
-import Link from 'next/link'
 import { LogOut } from 'lucide-react'
 import AutoLogoutProvider from '@/app/components/AutoLogoutProvider'
+import DashboardNav from './components/DashboardNav'
 
 export default async function DashboardLayout({
     children,
@@ -43,28 +43,7 @@ export default async function DashboardLayout({
                             </p>
                         </div>
 
-                        <nav className="flex space-x-4 md:flex-col md:space-x-0 md:space-y-2 w-full">
-                            <Link
-                                href="/group"
-                                className="block px-4 py-2 rounded-lg hover:bg-white/10 text-gray-300 hover:text-white transition-colors"
-                            >
-                                My Items
-                            </Link>
-                            {profile.role === 'admin' && (
-                                <Link
-                                    href="/admin"
-                                    className="block px-4 py-2 rounded-lg hover:bg-white/10 text-gray-300 hover:text-white transition-colors"
-                                >
-                                    Admin Panel
-                                </Link>
-                            )}
-                            <Link
-                                href="/settings"
-                                className="block px-4 py-2 rounded-lg hover:bg-white/10 text-gray-300 hover:text-white transition-colors"
-                            >
-                                Settings
-                            </Link>
-                        </nav>
+                        <DashboardNav role={profile.role} />
 
                         <div className="md:mt-auto">
                             <form action="/auth/signout" method="post">
