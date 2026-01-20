@@ -136,8 +136,7 @@ export default function AdminItemList() {
                                     {item.is_admin_locked && <Lock size={12} className="text-red-400" />}
                                 </h4>
                                 <div className="text-sm text-gray-400 flex flex-col sm:flex-row sm:gap-4">
-                                    <span>📂 {item.category?.name || 'Uncategorized'}</span>
-                                    <span className="text-gray-500">👤 {item.owner?.group_name || 'N/A'}</span>
+                                    <span className="text-gray-500">User: {item.owner?.group_name || 'N/A'}</span>
                                 </div>
                             </div>
                         </div>

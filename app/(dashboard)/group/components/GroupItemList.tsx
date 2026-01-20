@@ -205,10 +205,6 @@ export default function GroupItemList({ userId }: { userId: string }) {
                                         </div>
                                     )}
                                 </h3>
-                                <p className="text-gray-400 text-sm mb-1">
-                                    <span className="opacity-50 mr-2">Category:</span>
-                                    {item.category?.name || '未分類'}
-                                </p>
                                 <p className="text-gray-500 text-sm line-clamp-2 max-w-lg">
                                     {item.description || '説明文なし'}
                                 </p>
