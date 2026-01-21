@@ -61,73 +61,81 @@ export default function GuestList({ initialItems }: { initialItems: ItemWithDeta
                 </div>
             </div>
 
-            <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-8 auto-rows-fr">
-                <AnimatePresence>
-                    {filteredItems?.map((item, index) => (
-                        <motion.div
-                            key={item.id}
-                            initial={{ opacity: 0, y: 20 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            exit={{ opacity: 0, scale: 0.95 }}
-                            transition={{ duration: 0.5, delay: index * 0.05 }}
-                            className="art-card group h-full flex flex-col"
-                        >
-                            {/* Image Area - Artistic Aspect Ratio */}
-                            <div className="relative aspect-[4/3] w-full overflow-hidden bg-black/20">
-                                {item.image_url ? (
-                                    <Image
-                                        src={item.image_url}
-                                        alt={item.name}
-                                        fill
-                                        className="object-cover transition-transform duration-1000 ease-out group-hover:scale-105 opacity-90 group-hover:opacity-100"
-                                        sizes="(max-width: 768px) 50vw, (max-width: 1200px) 33vw, 25vw"
-                                    />
-                                ) : (
-                                    <div className="w-full h-full flex items-center justify-center text-gray-700 font-thin text-2xl md:text-4xl">
-                                        No Image
-                                    </div>
-                                )}
+            {filteredItems && filteredItems.length > 0 ? (
+                <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-8 auto-rows-fr">
+                    <AnimatePresence>
+                        {filteredItems.map((item, index) => (
+                            <motion.div
+                                key={item.id}
+                                initial={{ opacity: 0, y: 20 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                exit={{ opacity: 0, scale: 0.95 }}
+                                transition={{ duration: 0.5, delay: index * 0.05 }}
+                                className="art-card group h-full flex flex-col"
+                            >
+                                {/* Image Area - Artistic Aspect Ratio */}
+                                <div className="relative aspect-[4/3] w-full overflow-hidden bg-black/20">
+                                    {item.image_url ? (
+                                        <Image
+                                            src={item.image_url}
+                                            alt={item.name}
+                                            fill
+                                            className="object-cover transition-transform duration-1000 ease-out group-hover:scale-105 opacity-90 group-hover:opacity-100"
+                                            sizes="(max-width: 768px) 50vw, (max-width: 1200px) 33vw, 25vw"
+                                        />
+                                    ) : (
+                                        <div className="w-full h-full flex items-center justify-center text-gray-700 font-thin text-2xl md:text-4xl">
+                                            No Image
+                                        </div>
+                                    )}
 
-                                {/* Prominent Status Badge */}
-                                <div className="absolute top-0 right-0 z-20">
-                                    <span
-                                        className={`
+                                    {/* Prominent Status Badge */}
+                                    <div className="absolute top-0 right-0 z-20">
+                                        <span
+                                            className={`
                                                 block px-2 py-1 md:px-4 md:py-2 text-[10px] md:text-xs font-bold text-white shadow-lg tracking-wider
                                                 ${item.status?.color || 'bg-gray-500'}
                                                 rounded-bl-xl md:rounded-bl-2xl backdrop-blur-md bg-opacity-90
                                             `}
-                                    >
-                                        {item.status?.label || '未設定'}
-                                    </span>
-                                </div>
-                            </div>
-
-                            {/* Status Color Line */}
-                            <div className={`h-1 w-full ${item.status?.color || 'bg-gray-800'}`} />
-
-                            {/* Content - Spacious and Clean */}
-                            <div className="p-3 md:p-6 flex-1 flex flex-col justify-between">
-                                <div>
-                                    <h3 className="text-sm md:text-2xl font-serif font-medium text-white mb-2 md:mb-3 tracking-wide group-hover:text-gray-200 transition-colors line-clamp-2">
-                                        {item.name}
-                                    </h3>
-                                    <p className="text-[10px] md:text-xs text-gray-400 mb-2 md:mb-4 font-sans tracking-widest uppercase border-l-2 border-white/20 pl-2 md:pl-3 line-clamp-1">
-                                        <span className="text-white font-bold opacity-90 mr-2">
-                                            {item.owner?.display_name || item.owner?.group_name || '有志団体'}
+                                        >
+                                            {item.status?.label || '未設定'}
                                         </span>
-                                    </p>
-                                    <p className="text-gray-400 text-xs md:text-sm leading-relaxed line-clamp-3 font-light">
-                                        {item.description}
-                                    </p>
+                                    </div>
                                 </div>
-                                <div className="mt-3 md:mt-4 pt-3 md:pt-4 border-t border-white/5 flex justify-between items-center text-[10px] md:text-xs text-gray-600 font-light">
-                                    <span>ID: {item.id.slice(0, 4)}</span>
+
+                                {/* Status Color Line */}
+                                <div className={`h-1 w-full ${item.status?.color || 'bg-gray-800'}`} />
+
+                                {/* Content - Spacious and Clean */}
+                                <div className="p-3 md:p-6 flex-1 flex flex-col justify-between">
+                                    <div>
+                                        <h3 className="text-sm md:text-2xl font-serif font-medium text-white mb-2 md:mb-3 tracking-wide group-hover:text-gray-200 transition-colors line-clamp-2">
+                                            {item.name}
+                                        </h3>
+                                        <p className="text-[10px] md:text-xs text-gray-400 mb-2 md:mb-4 font-sans tracking-widest uppercase border-l-2 border-white/20 pl-2 md:pl-3 line-clamp-1">
+                                            <span className="text-white font-bold opacity-90 mr-2">
+                                                {item.owner?.display_name || item.owner?.group_name || '有志団体'}
+                                            </span>
+                                        </p>
+                                        <p className="text-gray-400 text-xs md:text-sm leading-relaxed line-clamp-3 font-light">
+                                            {item.description}
+                                        </p>
+                                    </div>
+                                    <div className="mt-3 md:mt-4 pt-3 md:pt-4 border-t border-white/5 flex justify-between items-center text-[10px] md:text-xs text-gray-600 font-light">
+                                        <span>ID: {item.id.slice(0, 4)}</span>
+                                    </div>
                                 </div>
-                            </div>
-                        </motion.div>
-                    ))}
-                </AnimatePresence>
-            </div>
+                            </motion.div>
+                        ))}
+                    </AnimatePresence>
+                </div>
+            ) : (
+                <div className="flex flex-col items-center justify-center py-20 text-center">
+                    <p className="text-lg md:text-xl text-gray-400 font-serif tracking-widest border-b border-white/10 pb-4">
+                        現在、表示できる商品はありません
+                    </p>
+                </div>
+            )}
         </div >
     )
 }
