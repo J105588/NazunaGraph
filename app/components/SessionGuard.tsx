@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from 'react'
 import { useRouter, usePathname } from 'next/navigation'
 import { createClient } from '@/utils/supabase/client'
 import toast from 'react-hot-toast'
+import { logSecurityEvent } from '@/app/actions/security'
 
 export default function SessionGuard({ children }: { children: React.ReactNode }) {
     const router = useRouter()
@@ -88,8 +89,16 @@ export default function SessionGuard({ children }: { children: React.ReactNode }
                     async (payload) => {
                         // If force_logout_at changed
                         if (payload.new.force_logout_at !== payload.old.force_logout_at) {
+                            // 1. Log Security Event
+                            await logSecurityEvent(user.id, 'Force Logout Triggered')
+
+                            // 2. Set LocalStorage Lockout (24 hours)
+                            const lockoutUntil = Date.now() + (24 * 60 * 60 * 1000)
+                            localStorage.setItem('security_lockout_until', lockoutUntil.toString())
+
+                            // 3. Logout
                             await supabase.auth.signOut()
-                            toast.error('当アカウントは管理者により強制的にログアウトされました')
+                            toast.error('当アカウントは管理者により強制的にログアウトされました。\n24時間のセキュリティ保護が適用されます。')
                             router.replace('/login')
                         }
                         // Update ref so polling doesn't trigger again
@@ -121,8 +130,15 @@ export default function SessionGuard({ children }: { children: React.ReactNode }
                     // If ref is set and different -> Logout
                     // Note: If realtime handled it, ref would be updated.
                     if (lastLogoutAt.current !== null && profile.force_logout_at !== lastLogoutAt.current) {
+                        // 1. Log Security Event
+                        await logSecurityEvent(user.id, 'Force Logout Triggered (Polling)')
+
+                        // 2. Set LocalStorage Lockout (24 hours)
+                        const lockoutUntil = Date.now() + (24 * 60 * 60 * 1000)
+                        localStorage.setItem('security_lockout_until', lockoutUntil.toString())
+
                         await supabase.auth.signOut()
-                        toast.error('当アカウントは管理者により強制的にログアウトされました')
+                        toast.error('当アカウントは管理者により強制的にログアウトされました。\n24時間のセキュリティ保護が適用されます。')
                         router.replace('/login')
                     }
                     lastLogoutAt.current = profile.force_logout_at
