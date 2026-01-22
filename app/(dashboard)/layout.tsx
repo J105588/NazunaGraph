@@ -32,7 +32,7 @@ export default async function DashboardLayout({
         <div className="min-h-screen bg-gray-900 flex flex-col md:flex-row">
             <AutoLogoutProvider>
                 {/* Sidebar / Mobile Header */}
-                <aside className="w-full md:w-64 bg-black/40 backdrop-blur-xl border-r border-white/10 p-4 md:h-screen sticky top-0 md:fixed z-50">
+                <aside className="w-full md:w-64 bg-gray-900/95 backdrop-blur-xl border-r border-white/10 p-4 md:h-screen sticky top-0 md:fixed z-[100]">
                     <div className="flex items-center justify-between md:flex-col md:items-start md:space-y-8">
                         <div>
                             <h1 className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-pink-400 to-violet-400">

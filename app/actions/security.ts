@@ -85,11 +85,12 @@ export async function checkIpLockout() {
         }
     )
 
-    // Check for any logs for this IP in the last 24 hours
+    // Check for any logs for this IP in the last 24 hours that are NOT resolved
     const { data, error } = await adminClient
         .from('security_logs')
         .select('created_at')
         .eq('ip_address', ip)
+        .is('resolved_at', null) // Only active locks
         .gte('created_at', new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString())
         .order('created_at', { ascending: false })
         .limit(1)
@@ -134,10 +135,12 @@ export async function unlockSystem(key: string) {
     )
 
     // Delete logs for this specific IP
+    // Soft-delete (resolve) logs for this specific IP instead of deleting
     const { error } = await adminClient
         .from('security_logs')
-        .delete()
+        .update({ resolved_at: new Date().toISOString() })
         .eq('ip_address', ip)
+        .is('resolved_at', null)
 
     if (error) {
         console.error('Failed to unlock IP:', error)
