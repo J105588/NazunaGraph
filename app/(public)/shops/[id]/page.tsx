@@ -63,7 +63,7 @@ export default async function ShopPage({ params }: { params: Promise<{ id: strin
 
                 </header>
 
-                <GuestList initialItems={shopItems} />
+                <GuestList initialItems={shopItems} ownerId={id} />
             </div>
         </main>
     )

@@ -9,9 +9,9 @@ import { Search } from 'lucide-react'
 import { useState } from 'react'
 import Image from 'next/image'
 
-async function fetchItems() {
+async function fetchItems(ownerId?: string) {
     const supabase = createClient()
-    const { data, error } = await supabase
+    let query = supabase
         .from('items')
         .select(`
       *,
@@ -22,17 +22,23 @@ async function fetchItems() {
         .order('category_id', { ascending: true })
         .order('name', { ascending: true })
 
+    if (ownerId) {
+        query = query.eq('owner_id', ownerId)
+    }
+
+    const { data, error } = await query
+
     if (error) throw error
     return data as ItemWithDetails[]
 }
 
-export default function GuestList({ initialItems }: { initialItems: ItemWithDetails[] }) {
-    useRealtimeSubscription('items', ['items'])
-    useRealtimeSubscription('status_definitions', ['items'])
+export default function GuestList({ initialItems, ownerId }: { initialItems: ItemWithDetails[], ownerId?: string }) {
+    useRealtimeSubscription('items', ['items', ownerId])
+    useRealtimeSubscription('status_definitions', ['items', ownerId])
 
     const { data: items } = useQuery({
-        queryKey: ['items'],
-        queryFn: fetchItems,
+        queryKey: ['items', ownerId],
+        queryFn: () => fetchItems(ownerId),
         initialData: initialItems,
         refetchInterval: 5000,
         refetchOnWindowFocus: true
