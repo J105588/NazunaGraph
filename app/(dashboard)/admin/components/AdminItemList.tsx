@@ -2,9 +2,10 @@
 
 import { useRealtimeSubscription } from '@/hooks/useRealtimeSubscription'
 import { createClient } from '@/utils/supabase/client'
-import { useQuery } from '@tanstack/react-query'
-import { Category, ItemWithDetails } from '@/types'
-import { Lock, Unlock, Search, Filter } from 'lucide-react'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
+import { Category, ItemWithDetails, StatusDefinition } from '@/types'
+import { Lock, Unlock, Search, Filter, Plus } from 'lucide-react'
+import AdminItemFormModal from './AdminItemFormModal'
 import toast from 'react-hot-toast'
 import { useState, useMemo } from 'react'
 
@@ -30,11 +31,19 @@ async function fetchCategories() {
     return data as Category[] || []
 }
 
+async function fetchStatuses() {
+    const supabase = createClient()
+    const { data } = await supabase.from('status_definitions').select('*').order('sort_order')
+    return data as StatusDefinition[] || []
+}
+
 export default function AdminItemList() {
     const supabase = createClient()
+    const queryClient = useQueryClient()
     useRealtimeSubscription('items', ['admin-items'])
+    useRealtimeSubscription('status_definitions', ['statuses'])
 
-    const { data: items } = useQuery({
+    const { data: items, refetch } = useQuery({
         queryKey: ['admin-items'],
         queryFn: fetchAllItems,
         refetchInterval: 5000,
@@ -46,8 +55,15 @@ export default function AdminItemList() {
         refetchInterval: 10000,
     })
 
+    const { data: statuses } = useQuery({
+        queryKey: ['statuses'],
+        queryFn: fetchStatuses,
+        refetchInterval: 10000,
+    })
+
     const [searchQuery, setSearchQuery] = useState('')
     const [selectedCategory, setSelectedCategory] = useState<number | 'all'>('all')
+    const [isModalOpen, setIsModalOpen] = useState(false)
 
     const toggleLock = async (id: string, currentLock: boolean) => {
         const { error } = await supabase
@@ -58,6 +74,43 @@ export default function AdminItemList() {
         if (error) toast.error('操作に失敗しました')
         else toast.success(currentLock ? 'ロック解除' : 'ロックしました')
     }
+
+    const updateStatus = async (itemId: string, statusId: number) => {
+        // Optimistic Update
+        const queryKey = ['admin-items']
+        await queryClient.cancelQueries({ queryKey })
+        const previousItems = queryClient.getQueryData<ItemWithDetails[]>(queryKey)
+
+        if (previousItems) {
+            queryClient.setQueryData<ItemWithDetails[]>(queryKey, (old) => {
+                if (!old) return []
+                // Find the new status object locally to update the UI immediately
+                const newStatus = statuses?.find(s => s.id === statusId)
+                return old.map(item =>
+                    item.id === itemId
+                        ? { ...item, status_id: statusId, status: newStatus || item.status }
+                        : item
+                )
+            })
+        }
+
+        try {
+            const { error } = await supabase
+                .from('items')
+                .update({ status_id: statusId })
+                .eq('id', itemId)
+
+            if (error) throw error
+            toast.success('ステータスを更新しました')
+        } catch (err) {
+            console.error(err)
+            toast.error('更新に失敗しました')
+            if (previousItems) {
+                queryClient.setQueryData(queryKey, previousItems)
+            }
+        }
+    }
+
 
     const filteredItems = useMemo(() => {
         if (!items) return []
@@ -71,9 +124,25 @@ export default function AdminItemList() {
 
     return (
         <div className="glass-card p-6 rounded-2xl md:col-span-2">
+            <AdminItemFormModal
+                isOpen={isModalOpen}
+                onClose={() => setIsModalOpen(false)}
+                onSuccess={() => {
+                    refetch()
+                }}
+            />
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
                 <div>
-                    <h3 className="text-xl font-bold font-serif text-white">Item Management</h3>
+                    <h3 className="text-xl font-bold font-serif text-white flex items-center gap-3">
+                        Item Management
+                        <button
+                            onClick={() => setIsModalOpen(true)}
+                            className="bg-white/10 hover:bg-white/20 text-white p-2 rounded-full transition-colors border border-white/20"
+                            title="新規アイテム追加"
+                        >
+                            <Plus className="w-4 h-4" />
+                        </button>
+                    </h3>
                     <p className="text-sm text-gray-400">Total Items: {filteredItems.length}</p>
                 </div>
 
@@ -143,9 +212,22 @@ export default function AdminItemList() {
 
                         {/* Controls */}
                         <div className="flex items-center justify-between md:justify-end gap-4 border-t md:border-t-0 border-white/10 pt-4 md:pt-0 mt-2 md:mt-0 w-full md:w-auto">
-                            <span className={`px-3 py-1 rounded-full text-xs font-bold ${item.status?.color}`}>
-                                {item.status?.label}
-                            </span>
+
+                            {/* Status Selector */}
+                            <select
+                                value={item.status_id || ''}
+                                onChange={(e) => updateStatus(item.id, Number(e.target.value))}
+                                className={`
+                                    appearance-none cursor-pointer px-3 py-1.5 rounded-lg text-xs font-bold border border-white/10 text-center
+                                    ${item.status?.color || 'bg-gray-800'} text-white focus:outline-none focus:ring-2 focus:ring-white/20
+                                `}
+                            >
+                                {statuses?.map((msg) => (
+                                    <option key={msg.id} value={msg.id} className="bg-gray-900 text-white">
+                                        {msg.label}
+                                    </option>
+                                ))}
+                            </select>
 
                             <button
                                 onClick={() => toggleLock(item.id, item.is_admin_locked)}

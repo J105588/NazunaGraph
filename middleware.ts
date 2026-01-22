@@ -95,6 +95,7 @@ export async function middleware(request: NextRequest) {
             .from('security_logs')
             .select('created_at')
             .eq('ip_address', ip)
+            .is('resolved_at', null)
             .gte('created_at', new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString())
             .limit(1)
 
