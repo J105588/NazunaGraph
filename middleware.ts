@@ -85,6 +85,12 @@ export async function middleware(request: NextRequest) {
                 reason: `AUTONOMOUS DEFENSE: Trap access (${path})`
             })
 
+        if (path.startsWith('/api/')) {
+            return NextResponse.json(
+                { error: 'Access denied: Honeypot trap triggered' },
+                { status: 403, headers: { 'Access-Control-Allow-Origin': '*' } }
+            )
+        }
         return NextResponse.redirect(new URL('/locked', request.url))
     }
 
@@ -101,6 +107,12 @@ export async function middleware(request: NextRequest) {
 
         if (data && data.length > 0) {
             // Locked!
+            if (path.startsWith('/api/')) {
+                return NextResponse.json(
+                    { error: 'Access denied: Your IP address is locked' },
+                    { status: 403, headers: { 'Access-Control-Allow-Origin': '*' } }
+                )
+            }
             return NextResponse.redirect(new URL('/locked', request.url))
         }
     }

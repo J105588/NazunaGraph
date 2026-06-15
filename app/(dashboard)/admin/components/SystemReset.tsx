@@ -26,8 +26,7 @@ export default function SystemReset() {
             toast.success('システムデータを初期化しました')
             // Reload to reflect changes
             window.location.reload()
-        } catch (err) {
-            // console.error(err)
+        } catch {
             toast.error('初期化に失敗しました')
         } finally {
             setLoading(false)
@@ -35,28 +34,30 @@ export default function SystemReset() {
     }
 
     return (
-        <div className="glass-card p-6 rounded-2xl border border-red-500/20 relative overflow-hidden bg-red-950/20">
-            <div className="absolute top-0 right-0 p-4 opacity-10">
-                <AlertOctagon className="w-24 h-24 text-red-500" />
+        <div className="bg-rose-50/30 border border-rose-200/80 p-6 md:p-8 rounded-3xl shadow-sm relative overflow-hidden flex flex-col h-full justify-between">
+            <div className="absolute top-0 right-0 p-4 opacity-5 pointer-events-none">
+                <AlertOctagon className="w-24 h-24 text-rose-500" />
             </div>
 
-            <div className="relative z-10">
-                <div className="flex items-center gap-2 mb-4">
-                    <Trash2 className="text-red-500 w-5 h-5" />
-                    <h3 className="text-xl font-bold text-white">System Reset</h3>
-                </div>
+            <div className="relative z-10 flex flex-col h-full justify-between space-y-4">
+                <div>
+                    <div className="flex items-center gap-2 mb-2">
+                        <Trash2 className="text-rose-600 w-5 h-5" />
+                        <h3 className="text-base font-bold text-rose-800">システム初期化 (Reset)</h3>
+                    </div>
 
-                <p className="text-sm text-gray-400 mb-6">
-                    全ての商品データと、管理者以外のユーザーデータを完全に削除します。<br />カテゴリデータとステータス定義は保持されます。
-                </p>
+                    <p className="text-xs text-slate-500 leading-relaxed">
+                        全ての商品データと、管理者以外のユーザーデータを完全にデータベースから削除し初期状態に戻します。カテゴリ定義とステータス定義は保持されます。
+                    </p>
+                </div>
 
                 <button
                     onClick={handleReset}
                     disabled={loading}
-                    className="w-full py-2 px-4 bg-red-600/20 hover:bg-red-600/40 text-red-400 border border-red-500/50 rounded-lg font-bold transition-all flex items-center justify-center gap-2"
+                    className="w-full py-2.5 px-4 bg-rose-600 hover:bg-rose-700 text-white font-bold rounded-xl transition-all flex items-center justify-center gap-1.5 shadow-md shadow-rose-100/50 text-xs cursor-pointer pt-2 border-t border-transparent"
                 >
                     {loading ? <Loader2 className="animate-spin w-4 h-4" /> : <AlertOctagon className="w-4 h-4" />}
-                    INITIALIZE DATA
+                    <span>データを完全に初期化する</span>
                 </button>
             </div>
         </div>

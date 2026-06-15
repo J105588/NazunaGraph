@@ -4,7 +4,7 @@ import { useEffect } from 'react'
 import { createClient } from '@/utils/supabase/client'
 import { useQueryClient } from '@tanstack/react-query'
 
-export function useRealtimeSubscription(table: string, queryKey: any[]) {
+export function useRealtimeSubscription(table: string, queryKey: unknown[]) {
     const queryClient = useQueryClient()
     const supabase = createClient()
 

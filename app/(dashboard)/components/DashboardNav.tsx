@@ -2,6 +2,7 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
+import { LayoutDashboard, Settings, Shield } from 'lucide-react'
 
 export default function DashboardNav({ role }: { role: string }) {
     const pathname = usePathname()
@@ -12,32 +13,37 @@ export default function DashboardNav({ role }: { role: string }) {
         return false
     }
 
-    const linkBaseClass = "block px-4 py-2 rounded-lg transition-colors duration-200"
-    const activeClass = "bg-white/20 text-white font-medium shadow-sm"
-    const inactiveClass = "hover:bg-white/10 text-gray-300 hover:text-white"
+    const linkBaseClass = "flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-bold transition-all duration-200 border"
+    const activeClass = "bg-indigo-50 border-indigo-100/50 text-indigo-700 shadow-sm shadow-indigo-50"
+    const inactiveClass = "border-transparent hover:bg-slate-50 text-slate-600 hover:text-slate-800"
 
     return (
-        <nav className="flex space-x-4 md:flex-col md:space-x-0 md:space-y-2 w-full">
+        <nav className="flex space-x-2 md:flex-col md:space-x-0 md:space-y-2.5 w-full">
             <Link
                 href="/group"
                 className={`${linkBaseClass} ${isActive('/group') ? activeClass : inactiveClass}`}
             >
-                My Items
+                <LayoutDashboard size={18} />
+                <span>登録アイテム</span>
             </Link>
             {role === 'admin' && (
                 <Link
                     href="/admin"
                     className={`${linkBaseClass} ${isActive('/admin') ? activeClass : inactiveClass}`}
                 >
-                    Admin Panel
+                    <Shield size={18} />
+                    <span>管理者パネル</span>
                 </Link>
             )}
             <Link
                 href="/settings"
                 className={`${linkBaseClass} ${isActive('/settings') ? activeClass : inactiveClass}`}
             >
-                Settings
+                <Settings size={18} />
+                <span>店舗設定</span>
             </Link>
         </nav>
     )
+
 }
+

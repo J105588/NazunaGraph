@@ -1,12 +1,6 @@
 import { createClient } from '@/utils/supabase/server'
 import { redirect } from 'next/navigation'
-import UserManagement from './components/UserManagement'
-import AdminItemList from './components/AdminItemList'
-import StatusMaster from './components/StatusMaster'
-import CategoryMaster from './components/CategoryMaster'
-import MaintenanceControl from './components/MaintenanceControl'
-import SystemReset from './components/SystemReset'
-
+import AdminTabsWrapper from './components/AdminTabsWrapper'
 
 export default async function AdminDashboard() {
     const supabase = await createClient()
@@ -23,50 +17,33 @@ export default async function AdminDashboard() {
 
     if (profile?.role !== 'admin') {
         return (
-            <div className="p-8 text-center min-h-[50vh] flex flex-col items-center justify-center">
-                <h1 className="text-3xl font-bold text-red-500 mb-4">Access Denied</h1>
-                <p className="text-gray-400">You do not have permission to view this page.</p>
+            <div className="p-8 text-center min-h-[50vh] flex flex-col items-center justify-center bg-white rounded-3xl border border-slate-200 shadow-sm">
+                <h1 className="text-2xl font-bold text-rose-600 mb-2">アクセス拒否</h1>
+                <p className="text-slate-500 text-sm">このページを表示する権限がありません。</p>
             </div>
         )
     }
 
     return (
-        <div className="space-y-8 max-w-7xl mx-auto pb-20">
+        <div className="space-y-6 pb-20">
             <header className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                 <div>
-                    <h2 className="text-3xl md:text-4xl font-bold font-serif text-transparent bg-clip-text bg-gradient-to-r from-pink-400 to-violet-400">
-                        Admin Control Center
+                    <h2 className="text-2xl md:text-3xl font-bold text-slate-800 tracking-wide">
+                        管理者コントロールセンター
                     </h2>
-                    <p className="text-gray-400 mt-1">
-                        System Overview & Master Configuration
+                    <p className="text-xs font-semibold text-slate-400 uppercase tracking-widest mt-0.5">
+                        システム全体の概要とマスター構成設定
                     </p>
                 </div>
                 <div className="flex gap-4">
-                    {/* Placeholder for future top-level actions */}
-                    <div className="text-xs text-gray-500 bg-white/5 py-1 px-3 rounded-full border border-white/5 backdrop-blur-md">
-                        System Good
+                    <div className="text-[10px] font-bold text-emerald-700 bg-emerald-50 py-1 px-3 rounded-full border border-emerald-200">
+                        システム正常稼働中
                     </div>
                 </div>
             </header>
 
-            {/* Config Grid */}
-            {/* Config Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8">
-                <StatusMaster />
-                <CategoryMaster />
-            </div>
-
-            {/* User Management */}
-            <UserManagement />
-
-            {/* Main Item List (Full Width) */}
-            <AdminItemList />
-
-            {/* System Controls */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8">
-                <MaintenanceControl />
-                <SystemReset />
-            </div>
+            <AdminTabsWrapper />
         </div>
     )
 }
+

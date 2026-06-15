@@ -23,12 +23,12 @@ export default async function SettingsPage() {
 
     return (
         <div className="max-w-4xl mx-auto pb-20 space-y-8">
-            <header>
-                <h2 className="text-3xl font-bold font-serif text-transparent bg-clip-text bg-gradient-to-r from-pink-400 to-violet-400">
-                    Settings
+            <header className="border-b border-slate-200 pb-4">
+                <h2 className="text-2xl font-bold text-slate-800">
+                    店舗設定
                 </h2>
-                <p className="text-gray-400 mt-1">
-                    Manage your public profile and exhibition details.
+                <p className="text-xs font-semibold text-slate-400 uppercase tracking-widest mt-0.5">
+                    一般公開されるプロフィールの変更と編集を行います
                 </p>
             </header>
 

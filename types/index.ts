@@ -1,7 +1,7 @@
 export type Profile = {
     id: string
     email: string | null
-    role: 'admin' | 'group' | 'guest'
+    role: 'admin' | 'group'
     group_name: string | null // Class Name (e.g., 3-A)
     display_name: string | null // Exhibition Name (e.g., Yakisoba Stand)
     description: string | null // Exhibition Description

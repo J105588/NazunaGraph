@@ -29,30 +29,37 @@ export default async function DashboardLayout({
     }
 
     return (
-        <div className="min-h-screen bg-gray-900 flex flex-col md:flex-row">
+        <div className="min-h-screen bg-slate-50 flex flex-col md:flex-row text-slate-800">
             <AutoLogoutProvider>
                 {/* Sidebar / Mobile Header */}
-                <aside className="w-full md:w-64 bg-gray-900/95 backdrop-blur-xl border-r border-white/10 p-4 md:h-screen sticky top-0 md:fixed z-[100]">
-                    <div className="flex items-center justify-between md:flex-col md:items-start md:space-y-8">
+                <aside className="w-full md:w-64 bg-white/90 backdrop-blur-md border-b md:border-b-0 md:border-r border-slate-200/80 p-5 md:h-screen sticky top-0 md:fixed z-[100] flex flex-col">
+                    <div className="flex flex-row md:flex-col items-center justify-between md:items-start md:space-y-8 w-full md:h-full">
                         <div>
-                            <h1 className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-pink-400 to-violet-400">
+                            <h1 className="text-xl font-bold bg-gradient-to-r from-indigo-600 to-violet-600 bg-clip-text text-transparent">
                                 Nazuna Graph
                             </h1>
-                            <p className="text-xs text-gray-400 mt-1 uppercase tracking-wider">
-                                {profile.role} Dashboard
+                            <p className="text-[10px] font-bold text-slate-400 mt-0.5 uppercase tracking-widest pl-0.5">
+                                {profile.role === 'admin' ? '管理者' : '団体'} ダッシュボード
                             </p>
                         </div>
 
-                        <DashboardNav role={profile.role} />
+                        <div className="hidden md:block w-full">
+                            <DashboardNav role={profile.role} />
+                        </div>
 
-                        <div className="md:mt-auto">
-                            <form action="/auth/signout" method="post">
+                        <div className="md:mt-auto flex items-center gap-4">
+                            {/* Dashboard nav in mobile view */}
+                            <div className="md:hidden">
+                                <DashboardNav role={profile.role} />
+                            </div>
+
+                            <form action="/auth/signout" method="post" className="flex items-center">
                                 <button
                                     type="submit"
-                                    className="flex items-center space-x-2 text-sm text-red-400 hover:text-red-300 transition-colors"
+                                    className="flex items-center space-x-1.5 px-3 py-1.5 rounded-lg text-xs font-bold text-rose-600 hover:bg-rose-50 hover:text-rose-700 transition-all cursor-pointer border border-transparent hover:border-rose-100"
                                 >
-                                    <LogOut size={16} />
-                                    <span>Sign Out</span>
+                                    <LogOut size={14} />
+                                    <span>ログアウト</span>
                                 </button>
                             </form>
                         </div>
@@ -60,10 +67,13 @@ export default async function DashboardLayout({
                 </aside>
 
                 {/* Main Content */}
-                <main className="flex-1 md:ml-64 p-4 md:p-8">
-                    {children}
+                <main className="flex-1 md:ml-64 p-5 md:p-10">
+                    <div className="max-w-6xl mx-auto">
+                        {children}
+                    </div>
                 </main>
             </AutoLogoutProvider>
         </div>
     )
+
 }

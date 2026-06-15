@@ -5,7 +5,7 @@ import { createClient } from '@/utils/supabase/client'
 import { useQuery } from '@tanstack/react-query'
 import { Category } from '@/types'
 import { useState } from 'react'
-import { Loader2, Plus, Trash2, Edit2, Save, X } from 'lucide-react'
+import { Loader2, Plus, Trash2, Edit2, Save, X, FolderKanban } from 'lucide-react'
 import toast from 'react-hot-toast'
 
 async function fetchCategories() {
@@ -88,45 +88,54 @@ export default function CategoryMaster() {
         }
     }
 
-    if (isLoading) return <div className="p-12"><Loader2 className="animate-spin mx-auto text-white" /></div>
+    if (isLoading) {
+        return (
+            <div className="flex justify-center items-center p-12 space-y-2">
+                <Loader2 className="animate-spin text-indigo-600 w-6 h-6" />
+            </div>
+        )
+    }
 
     return (
-        <div className="glass-card p-6 rounded-2xl h-full flex flex-col">
-            <div className="flex justify-between items-center mb-6">
-                <h3 className="text-xl font-bold text-white font-serif">Category Configuration</h3>
+        <div className="bg-white border border-slate-200 p-6 md:p-8 rounded-3xl shadow-sm flex flex-col h-full">
+            <div className="flex justify-between items-center mb-5 border-b border-slate-100 pb-3">
+                <h3 className="text-base font-bold text-slate-800 flex items-center gap-2">
+                    <FolderKanban className="w-4 h-4 text-indigo-600" />
+                    カテゴリ設定マスター
+                </h3>
                 {!isCreating && (
                     <button
                         onClick={() => setIsCreating(true)}
-                        className="p-2 rounded-lg bg-white/10 hover:bg-white/20 text-white transition-colors"
+                        className="p-1.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-slate-600 hover:text-slate-800 transition-all cursor-pointer shadow-sm"
                     >
-                        <Plus size={20} />
+                        <Plus size={16} />
                     </button>
                 )}
             </div>
 
-            <div className="flex-1 space-y-4 overflow-y-auto max-h-[400px] pr-2 custom-scrollbar">
+            <div className="flex-1 space-y-3 overflow-y-auto max-h-[400px] pr-2 custom-scrollbar">
                 {/* Create Form */}
                 {isCreating && (
-                    <div className="p-4 bg-white/5 rounded-xl border border-white/20 animate-in fade-in slide-in-from-top-2">
-                        <div className="flex items-center gap-3 mb-3">
+                    <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200/85 space-y-3 animate-in fade-in">
+                        <div className="flex items-center gap-3">
                             <input
-                                className="art-input flex-1 bg-black/40 border border-white/10 rounded px-3 py-2 text-white text-sm"
-                                placeholder="カテゴリ名"
+                                className="art-input flex-1 bg-white border border-slate-200 text-xs py-2 px-3 text-slate-800"
+                                placeholder="カテゴリ名 (例: 模擬店食品)"
                                 value={newCategoryName}
                                 onChange={(e) => setNewCategoryName(e.target.value)}
                             />
                             <input
-                                className="art-input w-20 bg-black/40 border border-white/10 rounded px-3 py-2 text-white text-sm"
+                                className="art-input w-20 bg-white border border-slate-200 text-xs py-2 px-3 text-slate-800"
                                 placeholder="順序"
                                 type="number"
                                 value={newSortOrder}
                                 onChange={(e) => setNewSortOrder(e.target.value)}
                             />
                         </div>
-                        <div className="flex justify-end gap-2">
-                            <button onClick={() => setIsCreating(false)} className="text-gray-400 hover:text-white px-3 py-1 text-xs">キャンセル</button>
-                            <button onClick={handleCreate} className="art-btn px-4 py-1.5 text-xs flex items-center gap-1">
-                                <Plus size={14} /> 追加
+                        <div className="flex justify-end gap-2 pt-1 border-t border-slate-200/40">
+                            <button onClick={() => setIsCreating(false)} className="text-slate-500 hover:text-slate-700 text-xs cursor-pointer">キャンセル</button>
+                            <button onClick={handleCreate} className="px-3.5 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs rounded-lg transition-all flex items-center gap-1 cursor-pointer">
+                                <Plus size={12} /> 追加
                             </button>
                         </div>
                     </div>
@@ -134,34 +143,34 @@ export default function CategoryMaster() {
 
                 {/* List */}
                 {categories?.map((cat) => (
-                    <div key={cat.id} className="flex items-center gap-3 p-3 rounded-xl bg-white/5 border border-white/5 hover:border-white/10 transition-colors group">
+                    <div key={cat.id} className="flex items-center gap-3 p-3.5 rounded-2xl bg-white border border-slate-100 hover:border-slate-200 hover:shadow-sm transition-all group">
                         {editingId === cat.id ? (
                             <>
                                 <div className="flex-1 flex gap-2">
                                     <input
-                                        className="art-input flex-1 bg-black/40 border border-white/10 rounded px-2 py-1 text-white text-sm"
+                                        className="art-input flex-1 bg-white border border-slate-200 text-xs py-2 px-3"
                                         value={editName}
                                         onChange={(e) => setEditName(e.target.value)}
                                     />
                                     <input
-                                        className="art-input w-16 bg-black/40 border border-white/10 rounded px-2 py-1 text-white text-sm"
+                                        className="art-input w-16 bg-white border border-slate-200 text-xs py-2 px-3"
                                         type="number"
                                         value={editSortOrder}
                                         onChange={(e) => setEditSortOrder(e.target.value)}
                                     />
                                 </div>
-                                <button onClick={handleUpdate} className="p-2 text-green-400 hover:bg-white/10 rounded"><Save size={16} /></button>
-                                <button onClick={() => setEditingId(null)} className="p-2 text-gray-400 hover:bg-white/10 rounded"><X size={16} /></button>
+                                <button onClick={handleUpdate} className="p-1.5 text-emerald-600 hover:bg-slate-50 rounded border border-slate-200 cursor-pointer shadow-sm"><Save size={14} /></button>
+                                <button onClick={() => setEditingId(null)} className="p-1.5 text-slate-500 hover:bg-slate-50 rounded border border-slate-200 cursor-pointer shadow-sm"><X size={14} /></button>
                             </>
                         ) : (
                             <>
-                                <div className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center text-xs font-mono text-gray-400">
+                                <div className="w-7 h-7 rounded-xl bg-slate-50 border border-slate-200 flex items-center justify-center text-xs font-mono font-bold text-slate-500 shadow-sm">
                                     {cat.sort_order}
                                 </div>
-                                <span className="flex-1 font-medium text-white">{cat.name}</span>
+                                <span className="flex-1 font-bold text-slate-700 text-xs">{cat.name}</span>
                                 <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                                    <button onClick={() => startEdit(cat)} className="p-2 text-blue-300 hover:bg-white/10 rounded"><Edit2 size={16} /></button>
-                                    <button onClick={() => handleDelete(cat.id)} className="p-2 text-red-300 hover:bg-white/10 rounded"><Trash2 size={16} /></button>
+                                    <button onClick={() => startEdit(cat)} className="p-1.5 text-slate-500 hover:text-indigo-600 hover:bg-slate-50 rounded border border-slate-200/50 cursor-pointer"><Edit2 size={13} /></button>
+                                    <button onClick={() => handleDelete(cat.id)} className="p-1.5 text-rose-500 hover:text-rose-600 hover:bg-slate-50 rounded border border-slate-200/50 cursor-pointer"><Trash2 size={13} /></button>
                                 </div>
                             </>
                         )}

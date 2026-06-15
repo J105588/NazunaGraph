@@ -77,15 +77,15 @@ export default function LockedPage() {
             if (result.success) {
                 localStorage.removeItem('security_lockout_until')
                 setShowUnlockModal(false)
-                toast.success('Security protection lifted')
+                toast.success('セキュリティロックが解除されました')
                 router.refresh()
                 router.replace('/login')
             } else {
-                toast.error(result.message || 'Unlock failed')
+                toast.error(result.message || '解除に失敗しました')
             }
         } catch (error) {
             console.error(error)
-            toast.error('Verification failed')
+            toast.error('認証エラーが発生しました')
         } finally {
             setLoading(false)
         }
@@ -94,78 +94,78 @@ export default function LockedPage() {
     if (!lockoutEndTime) return null
 
     return (
-        <div className="min-h-screen flex items-center justify-center p-6 relative overflow-hidden bg-black text-white">
+        <div className="min-h-screen flex items-center justify-center p-6 relative overflow-hidden bg-slate-50 text-slate-800">
+            {/* Ambient Background blobs */}
             <div className="fixed top-0 left-0 w-full h-full pointer-events-none z-[-1]">
-                <div className="absolute top-[20%] right-[20%] w-[400px] h-[400px] bg-red-500/5 rounded-full blur-[100px]"></div>
+                <div className="absolute top-[20%] right-[20%] w-[400px] h-[400px] bg-rose-50 rounded-full blur-[100px]"></div>
             </div>
 
             <motion.div
-                initial={{ opacity: 0, scale: 0.9 }}
+                initial={{ opacity: 0, scale: 0.95 }}
                 animate={{ opacity: 1, scale: 1 }}
-                className="w-full max-w-lg art-card p-12 border-red-500/20 shadow-2xl shadow-red-900/10"
+                className="w-full max-w-lg bg-white border border-slate-200 p-8 md:p-12 rounded-3xl shadow-xl shadow-slate-100"
             >
-                <div className="text-center space-y-8">
+                <div className="text-center space-y-6">
                     <div className="flex justify-center">
-                        <div className="w-24 h-24 rounded-full bg-red-500/10 flex items-center justify-center animate-pulse border border-red-500/20">
-                            <ShieldAlert className="w-12 h-12 text-red-500" />
+                        <div className="w-20 h-20 rounded-full bg-rose-50 border border-rose-200 flex items-center justify-center animate-pulse">
+                            <ShieldAlert className="w-10 h-10 text-rose-600" />
                         </div>
                     </div>
 
-                    <div className="space-y-4">
-                        <h1 className="text-3xl font-bold text-red-500 tracking-tight">ACCESS DENIED</h1>
-                        <p className="text-gray-400 text-sm leading-relaxed max-w-sm mx-auto">
-                            Security Protocol Alpha-9 Active.<br />
-                            Your IP address has been flagged for suspicious activity or administrative lockout.
+                    <div className="space-y-3">
+                        <h1 className="text-2xl md:text-3xl font-bold text-rose-600 tracking-tight">アクセスが拒否されました</h1>
+                        <p className="text-slate-500 text-xs md:text-sm leading-relaxed max-w-sm mx-auto font-medium">
+                            セキュリティ制限アルゴリズムに基づき、不審なログイン試行が行われたため一時的にアクセスをロックしています。
                         </p>
                     </div>
 
-                    <div className="bg-black/40 rounded-xl p-6 border border-white/5">
-                        <p className="text-xs text-gray-500 mb-2 uppercase tracking-widest">Automatic Release In</p>
-                        <p className="text-4xl font-mono text-white flex items-center justify-center gap-3">
-                            <Timer className="w-6 h-6 text-red-900" />
+                    <div className="bg-slate-50 rounded-2xl p-5 border border-slate-200">
+                        <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mb-1.5">自動解除まで</p>
+                        <p className="text-3xl font-mono font-bold text-slate-800 flex items-center justify-center gap-2">
+                            <Timer className="w-6 h-6 text-slate-400" />
                             {timeLeft}
                         </p>
                     </div>
 
                     <button
                         onClick={() => setShowUnlockModal(true)}
-                        className="text-gray-600 hover:text-red-400 text-xs tracking-widest uppercase transition-colors"
+                        className="text-slate-400 hover:text-slate-600 text-xs font-semibold tracking-wider uppercase transition-colors"
                     >
-                        Override Protocol
+                        ロックを解除
                     </button>
                 </div>
             </motion.div>
 
             {/* Unlock Modal */}
             {showUnlockModal && (
-                <div className="fixed inset-0 bg-black/90 backdrop-blur-xl z-50 flex items-center justify-center p-4">
+                <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-md z-50 flex items-center justify-center p-4">
                     <motion.div
-                        initial={{ opacity: 0, y: 20 }}
+                        initial={{ opacity: 0, y: 12 }}
                         animate={{ opacity: 1, y: 0 }}
-                        className="w-full max-w-sm glass-card p-8 rounded-2xl relative border border-red-500/20 bg-black/50"
+                        className="w-full max-w-sm bg-white border border-slate-200 p-6 md:p-8 rounded-3xl shadow-xl relative"
                     >
                         <button
                             onClick={() => setShowUnlockModal(false)}
-                            className="absolute top-4 right-4 text-gray-500 hover:text-white"
+                            className="absolute top-4 right-4 p-1 text-slate-400 hover:text-slate-600 rounded-full hover:bg-slate-100 transition-colors"
                         >
-                            <X className="w-5 h-5" />
+                            <X className="w-4 h-4" />
                         </button>
 
-                        <h3 className="text-xl font-bold text-white mb-6 flex items-center gap-2">
-                            <KeyRound className="w-5 h-5 text-red-400" />
-                            Admin Override
+                        <h3 className="text-lg font-bold text-slate-800 mb-5 flex items-center gap-2 border-b border-slate-100 pb-3">
+                            <KeyRound className="w-5 h-5 text-indigo-600" />
+                            緊急キー入力
                         </h3>
 
-                        <form onSubmit={handleUnlock} className="space-y-6">
+                        <form onSubmit={handleUnlock} className="space-y-4">
                             <div>
-                                <label className="block text-xs text-gray-400 mb-2 tracking-widest uppercase">Security Key</label>
+                                <label className="block text-xs font-bold text-slate-500 mb-2">管理者用セキュリティキー</label>
                                 <input
                                     type="password"
                                     required
                                     value={securityKey}
                                     onChange={(e) => setSecurityKey(e.target.value)}
-                                    className="art-input w-full bg-black/40 border-red-900/30 focus:border-red-500 text-center tracking-widest"
-                                    placeholder="••••••••"
+                                    className="art-input w-full bg-white border border-slate-200 text-center tracking-widest"
+                                    placeholder="PASSWORD"
                                     autoFocus
                                 />
                             </div>
@@ -173,9 +173,9 @@ export default function LockedPage() {
                             <button
                                 type="submit"
                                 disabled={loading}
-                                className="w-full bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/30 font-bold py-4 rounded-lg transition-all text-xs tracking-widest uppercase"
+                                className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 rounded-xl transition-all text-xs tracking-wider"
                             >
-                                {loading ? 'Verifying...' : 'Execute Unlock'}
+                                {loading ? '検証中...' : 'ロックを解除'}
                             </button>
                         </form>
                     </motion.div>

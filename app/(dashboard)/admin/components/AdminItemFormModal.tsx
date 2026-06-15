@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { createClient } from '@/utils/supabase/client'
-import { Category, Item, Profile } from '@/types'
+import { Item, Profile } from '@/types'
 import { motion, AnimatePresence } from 'framer-motion'
 import { X, Upload, Loader2, Save } from 'lucide-react'
 import toast from 'react-hot-toast'
@@ -21,13 +21,12 @@ export default function AdminItemFormModal({ isOpen, onClose, onSuccess, initial
     const [ownerId, setOwnerId] = useState<string>('')
     const [imageFile, setImageFile] = useState<File | null>(null)
     const [imagePreview, setImagePreview] = useState<string | null>(null)
-    const [groups, setGroups] = useState<any[]>([]) // Profiles with role='group'
+    const [groups, setGroups] = useState<Partial<Profile>[]>([]) // Profiles with role='group'
     const [loading, setLoading] = useState(false)
     const [uploading, setUploading] = useState(false)
 
     useEffect(() => {
         const fetchData = async () => {
-
             const { data: groupData } = await supabase
                 .from('profiles')
                 .select('id, group_name, display_name, role')
@@ -42,13 +41,11 @@ export default function AdminItemFormModal({ isOpen, onClose, onSuccess, initial
         if (initialItem) {
             setName(initialItem.name)
             setDescription(initialItem.description || '')
-            setDescription(initialItem.description || '')
             setOwnerId(initialItem.owner_id)
             setImagePreview(initialItem.image_url)
         } else {
             // Reset form for new item
             setName('')
-            setDescription('')
             setDescription('')
             setOwnerId('')
             setImageFile(null)
@@ -151,37 +148,37 @@ export default function AdminItemFormModal({ isOpen, onClose, onSuccess, initial
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
                         onClick={onClose}
-                        className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50"
+                        className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50"
                     />
                     <motion.div
-                        initial={{ opacity: 0, scale: 0.95, y: 20 }}
+                        initial={{ opacity: 0, scale: 0.97, y: 15 }}
                         animate={{ opacity: 1, scale: 1, y: 0 }}
-                        exit={{ opacity: 0, scale: 0.95, y: 20 }}
-                        className="fixed inset-0 m-auto z-50 max-w-lg w-[95%] h-fit max-h-[90vh] overflow-y-auto glass-card border border-white/20 p-6 md:p-8"
+                        exit={{ opacity: 0, scale: 0.97, y: 15 }}
+                        className="fixed inset-0 m-auto z-50 max-w-lg w-[95%] h-fit max-h-[90vh] overflow-y-auto bg-white border border-slate-200 p-6 md:p-8 rounded-3xl shadow-xl"
                     >
-                        <div className="flex justify-between items-center mb-6">
-                            <h2 className="text-2xl font-serif text-white">
-                                {initialItem ? '【管理者】アイテム編集' : '【管理者】新規アイテム登録'}
+                        <div className="flex justify-between items-center mb-6 border-b border-slate-100 pb-3">
+                            <h2 className="text-lg font-bold text-slate-800">
+                                {initialItem ? '【管理者】出品情報の編集' : '【管理者】新規アイテム追加'}
                             </h2>
-                            <button onClick={onClose} className="p-2 hover:bg-white/10 rounded-full transition-colors">
-                                <X className="w-5 h-5 text-gray-400" />
+                            <button onClick={onClose} className="p-1.5 hover:bg-slate-100 rounded-full transition-colors cursor-pointer">
+                                <X className="w-4 h-4 text-slate-400" />
                             </button>
                         </div>
 
-                        <form onSubmit={handleSubmit} className="space-y-6">
+                        <form onSubmit={handleSubmit} className="space-y-5">
                             {/* Owner Selection */}
-                            <div className="space-y-2">
-                                <label className="block text-sm font-medium text-gray-300">所有者 (必須)</label>
+                            <div className="space-y-1.5">
+                                <label className="block text-xs font-bold text-slate-500">所有団体/管理者 (必須)</label>
                                 <select
                                     required
                                     value={ownerId}
                                     onChange={(e) => setOwnerId(e.target.value)}
-                                    className="art-input w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-white/30 appearance-none"
+                                    className="art-input w-full bg-white border border-slate-200 text-slate-800"
                                 >
-                                    <option value="" className="text-black">所有者を選択してください</option>
+                                    <option value="">所有店舗・団体を選択してください</option>
                                     {groups.map((g) => (
-                                        <option key={g.id} value={g.id} className="text-black">
-                                            {g.role === 'admin' ? '[Admin] ' : ''}
+                                        <option key={g.id} value={g.id}>
+                                            {g.role === 'admin' ? '[管理者] ' : ''}
                                             {g.group_name || g.display_name || 'No Name'}
                                             {g.role === 'group' && g.display_name ? ` (${g.display_name})` : ''}
                                         </option>
@@ -190,15 +187,15 @@ export default function AdminItemFormModal({ isOpen, onClose, onSuccess, initial
                             </div>
 
                             {/* Image Upload */}
-                            <div className="space-y-2">
-                                <label className="block text-sm font-medium text-gray-300">商品画像</label>
+                            <div className="space-y-1.5">
+                                <label className="block text-xs font-bold text-slate-500">商品画像</label>
                                 <div className="flex items-center gap-4">
-                                    <div className="relative w-24 h-24 rounded-xl overflow-hidden bg-white/5 border border-white/10 flex items-center justify-center group cursor-pointer">
+                                    <div className="relative w-20 h-20 rounded-xl overflow-hidden bg-slate-50 border-2 border-dashed border-slate-200 flex items-center justify-center group cursor-pointer hover:border-indigo-300 hover:bg-slate-100/50 transition-all">
                                         {imagePreview ? (
                                             // eslint-disable-next-line @next/next/no-img-element
                                             <img src={imagePreview} alt="Preview" className="w-full h-full object-cover" />
                                         ) : (
-                                            <Upload className="w-8 h-8 text-gray-500 group-hover:text-white transition-colors" />
+                                            <Upload className="w-6 h-6 text-slate-400 group-hover:text-indigo-600 transition-colors" />
                                         )}
                                         <input
                                             type="file"
@@ -207,47 +204,48 @@ export default function AdminItemFormModal({ isOpen, onClose, onSuccess, initial
                                             className="absolute inset-0 opacity-0 cursor-pointer"
                                         />
                                     </div>
-                                    <div className="text-sm text-gray-400">
-                                        <p>クリックして画像をアップロード</p>
+                                    <div className="text-xs text-slate-400">
+                                        <p className="font-semibold text-slate-600">クリックして画像をアップロード</p>
+                                        <p className="text-slate-400 mt-0.5">推奨: 4:3 または 1:1, 最大 2MB</p>
                                     </div>
                                 </div>
                             </div>
 
                             {/* Name */}
-                            <div className="space-y-2">
-                                <label className="block text-sm font-medium text-gray-300">商品名</label>
+                            <div className="space-y-1.5">
+                                <label className="block text-xs font-bold text-slate-500">商品名</label>
                                 <input
                                     type="text"
                                     required
                                     value={name}
                                     onChange={(e) => setName(e.target.value)}
-                                    className="art-input w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-white/30"
-                                    placeholder="例: 焼きそば"
+                                    className="art-input w-full bg-white border border-slate-200"
+                                    placeholder="例: フランクフルト"
                                 />
                             </div>
 
                             {/* Description */}
-                            <div className="space-y-2">
-                                <label className="block text-sm font-medium text-gray-300">説明文</label>
+                            <div className="space-y-1.5">
+                                <label className="block text-xs font-bold text-slate-500">説明文</label>
                                 <textarea
                                     value={description}
                                     onChange={(e) => setDescription(e.target.value)}
                                     rows={3}
-                                    className="art-input w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-white/30 resize-none"
-                                    placeholder="商品の魅力や詳細を入力してください"
+                                    className="art-input w-full bg-white border border-slate-200 resize-none rounded-xl"
+                                    placeholder="商品の説明を入力してください"
                                 />
                             </div>
 
                             <button
                                 type="submit"
                                 disabled={loading || uploading}
-                                className="w-full art-btn flex items-center justify-center gap-2 mt-4"
+                                className="w-full art-btn bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 rounded-xl shadow-md shadow-indigo-100 transition-all flex items-center justify-center gap-1.5 mt-2 cursor-pointer"
                             >
                                 {(loading || uploading) ? (
-                                    <Loader2 className="w-5 h-5 animate-spin" />
+                                    <Loader2 className="w-4 h-4 animate-spin" />
                                 ) : (
                                     <>
-                                        <Save className="w-5 h-5" />
+                                        <Save className="w-4 h-4" />
                                         <span>保存する</span>
                                     </>
                                 )}

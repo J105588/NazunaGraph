@@ -100,3 +100,77 @@ export async function createUser(formData: FormData) {
 
     return { success: true, user: newUser }
 }
+
+export async function adminUpdateUserProfile(
+    userId: string,
+    updates: {
+        role?: 'admin' | 'group'
+        category_id?: number | null
+        display_name?: string
+        group_name?: string
+        description?: string | null
+        image_url?: string | null
+    }
+) {
+    // 1. Verify Requesting User is Admin
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+
+    if (!user) {
+        throw new Error('Not authenticated')
+    }
+
+    const { data: profile } = await supabase
+        .from('profiles')
+        .select('role')
+        .eq('id', user.id)
+        .single()
+
+    if (profile?.role !== 'admin') {
+        throw new Error('Access denied: Admins only')
+    }
+
+    // 2. Initialize Admin Client with service role key
+    const adminClient = createAdminClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.SUPABASE_SERVICE_ROLE_KEY!,
+        {
+            auth: {
+                autoRefreshToken: false,
+                persistSession: false
+            }
+        }
+    )
+
+    // 3. If role is being updated, update auth user metadata role as well
+    if (updates.role) {
+        const { error: authError } = await adminClient.auth.admin.updateUserById(
+            userId,
+            {
+                user_metadata: { role: updates.role }
+            }
+        )
+        if (authError) {
+            throw new Error(`Auth update failed: ${authError.message}`)
+        }
+    }
+
+    // 4. Update profile in database (using adminClient/service role to bypass RLS and triggers check)
+    const { error: dbError } = await adminClient
+        .from('profiles')
+        .update({
+            ...(updates.role !== undefined && { role: updates.role }),
+            ...(updates.category_id !== undefined && { category_id: updates.category_id }),
+            ...(updates.display_name !== undefined && { display_name: updates.display_name }),
+            ...(updates.group_name !== undefined && { group_name: updates.group_name }),
+            ...(updates.description !== undefined && { description: updates.description }),
+            ...(updates.image_url !== undefined && { image_url: updates.image_url }),
+        })
+        .eq('id', userId)
+
+    if (dbError) {
+        throw new Error(`Database update failed: ${dbError.message}`)
+    }
+
+    return { success: true }
+}

@@ -28,7 +28,7 @@ export default function OpeningOverlay({ onComplete }: { onComplete: () => void 
                     key="opening-overlay"
                     initial={{ opacity: 1 }}
                     exit={{ opacity: 0, transition: { duration: 0.8, ease: "easeInOut" } }}
-                    className="fixed inset-0 z-[100] bg-[#081023] flex flex-col items-center justify-center p-4"
+                    className="fixed inset-0 z-[100] bg-slate-50 flex flex-col items-center justify-center p-4"
                 >
                     {/* Icon Container */}
                     <div className="relative w-32 h-32 md:w-48 md:h-48 mb-8">
@@ -45,7 +45,7 @@ export default function OpeningOverlay({ onComplete }: { onComplete: () => void 
                             <img
                                 src="/icon.png"
                                 alt="Nazuna Graph Logo"
-                                className="w-full h-full object-contain drop-shadow-[0_0_15px_rgba(255,255,255,0.3)]"
+                                className="w-full h-full object-contain drop-shadow-[0_4px_20px_rgba(0,0,0,0.08)]"
                             />
                         </motion.div>
                     </div>
@@ -60,7 +60,7 @@ export default function OpeningOverlay({ onComplete }: { onComplete: () => void 
                                 duration: 1.0,
                                 ease: "easeOut"
                             }}
-                            className="text-3xl md:text-5xl font-serif font-bold text-transparent bg-clip-text bg-gradient-to-r from-pink-200 via-white to-violet-200 tracking-widest text-center"
+                            className="text-3xl md:text-5xl font-serif font-bold text-transparent bg-clip-text bg-gradient-to-r from-indigo-700 via-slate-800 to-violet-700 tracking-widest text-center"
                         >
                             Nazuna Graph
                         </motion.h1>

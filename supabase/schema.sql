@@ -7,7 +7,7 @@ create extension if not exists "uuid-ossp";
 create table public.profiles (
   id uuid references auth.users on delete cascade not null primary key,
   email text,
-  role text not null check (role in ('admin', 'group', 'guest')) default 'guest',
+  role text not null check (role in ('admin', 'group')) default 'group',
   group_name text, -- For 'group' role, the display name of the group
   created_at timestamptz default now()
 );
@@ -136,7 +136,7 @@ create or replace function public.handle_new_user()
 returns trigger as $$
 begin
   insert into public.profiles (id, email, role, group_name)
-  values (new.id, new.email, coalesce(new.raw_user_meta_data->>'role', 'guest'), new.raw_user_meta_data->>'group_name');
+  values (new.id, new.email, coalesce(new.raw_user_meta_data->>'role', 'group'), new.raw_user_meta_data->>'group_name');
   return new;
 end;
 $$ language plpgsql security definer;

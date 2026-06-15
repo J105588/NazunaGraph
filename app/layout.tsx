@@ -1,9 +1,14 @@
 import type { Metadata } from 'next'
-import { Inter, Shippori_Mincho } from 'next/font/google'
+import { Outfit, Shippori_Mincho } from 'next/font/google'
 import './globals.css'
 import Providers from '@/components/providers'
 
-const inter = Inter({ subsets: ['latin'] })
+const outfit = Outfit({
+    subsets: ['latin'],
+    variable: '--font-outfit',
+    display: 'swap',
+})
+
 const mincho = Shippori_Mincho({
     weight: ['400', '500', '600', '700', '800'],
     subsets: ['latin'],
@@ -25,7 +30,7 @@ export default function RootLayout({
 }>) {
     return (
         <html lang="ja">
-            <body className={`${inter.className} ${mincho.variable} antialiased`} suppressHydrationWarning>
+            <body className={`${outfit.variable} ${mincho.variable} antialiased`} suppressHydrationWarning>
                 <Providers>
                     <SessionGuard>
                         {children}
@@ -35,3 +40,4 @@ export default function RootLayout({
         </html>
     )
 }
+
