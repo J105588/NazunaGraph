@@ -26,7 +26,7 @@ export default async function Home() {
                     <div className="text-center space-y-4 max-w-2xl mx-auto">
                         <AnimatedTitle />
                         <p className="text-slate-500 text-xs md:text-sm tracking-widest font-medium">
-                            現在の各展示の在庫状況を表示しています。
+                            現在の各団体の在庫状況を表示しています。
                         </p>
                     </div>
                 </header>

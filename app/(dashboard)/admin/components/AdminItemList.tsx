@@ -60,19 +60,19 @@ export default function AdminItemList() {
     const { data: items, refetch } = useQuery({
         queryKey: ['admin-items'],
         queryFn: fetchAllItems,
-        refetchInterval: 5000,
+        refetchInterval: 30000,
     })
 
     const { data: categories } = useQuery({
         queryKey: ['categories'],
         queryFn: fetchCategories,
-        refetchInterval: 10000,
+        refetchInterval: 60000,
     })
 
     const { data: statuses } = useQuery({
         queryKey: ['statuses'],
         queryFn: fetchStatuses,
-        refetchInterval: 10000,
+        refetchInterval: 60000,
     })
 
     const [searchQuery, setSearchQuery] = useState('')

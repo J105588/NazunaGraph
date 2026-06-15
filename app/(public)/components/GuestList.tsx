@@ -46,7 +46,7 @@ export default function GuestList({ initialItems, ownerId }: { initialItems: Ite
         queryKey: ['items', ownerId],
         queryFn: () => fetchItems(ownerId),
         initialData: initialItems,
-        refetchInterval: 5000,
+        refetchInterval: 30000,
         refetchOnWindowFocus: true
     })
 
@@ -104,7 +104,7 @@ export default function GuestList({ initialItems, ownerId }: { initialItems: Ite
                     <input
                         type="text"
                         placeholder="商品を検索..."
-                        className="art-input pl-10 pr-8 py-2 text-sm border-slate-200 bg-white"
+                        className="art-input pl-10 pr-8 py-2 text-sm border-slate-200 bg-white text-slate-800"
                         value={search}
                         onChange={(e) => setSearch(e.target.value)}
                     />

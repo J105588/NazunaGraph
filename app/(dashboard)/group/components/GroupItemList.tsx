@@ -53,13 +53,13 @@ export default function GroupItemList({ userId }: { userId: string }) {
     const { data: items, isLoading: itemsLoading, refetch } = useQuery({
         queryKey: ['group-items', userId],
         queryFn: () => fetchGroupItems(userId),
-        refetchInterval: 5000,
+        refetchInterval: 30000,
     })
 
     const { data: statuses } = useQuery({
         queryKey: ['statuses'],
         queryFn: fetchStatuses,
-        refetchInterval: 10000, // Statuses change less often
+        refetchInterval: 60000, // Statuses change less often
     })
 
     const { data: disabledUsers } = useQuery({
@@ -71,7 +71,7 @@ export default function GroupItemList({ userId }: { userId: string }) {
                 .eq('key', 'disabled_registration_users')
             return (data && data.length > 0 && Array.isArray(data[0].value)) ? (data[0].value as string[]) : []
         },
-        refetchInterval: 10000,
+        refetchInterval: 60000,
     })
 
     const isRegistrationDisabled = disabledUsers?.includes(userId) || false

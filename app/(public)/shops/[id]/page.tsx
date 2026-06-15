@@ -55,18 +55,9 @@ export default async function ShopPage({ params }: { params: Promise<{ id: strin
                                 Nazuna Graph
                             </span>
                         </Link>
-                        <span className="h-4 w-px bg-slate-200 hidden sm:inline-block" />
-                        <Link href="/" className="inline-flex items-center gap-2 text-slate-500 hover:text-indigo-600 transition-colors text-sm font-semibold group hidden sm:inline-flex">
-                            <ArrowLeft size={16} className="transition-transform group-hover:-translate-x-1" />
-                            <span>一覧に戻る</span>
-                        </Link>
                     </div>
 
                     <div className="flex items-center gap-4">
-                        <Link href="/" className="inline-flex items-center gap-1.5 text-slate-500 hover:text-indigo-600 transition-colors text-xs font-semibold group sm:hidden">
-                            <ArrowLeft size={14} className="transition-transform group-hover:-translate-x-0.5" />
-                            <span>戻る</span>
-                        </Link>
                         <span className="text-xs font-semibold text-slate-400 tracking-wider">
                             団体詳細メニュー
                         </span>
@@ -74,10 +65,21 @@ export default async function ShopPage({ params }: { params: Promise<{ id: strin
                 </div>
             </div>
 
-            <div className="max-w-7xl mx-auto space-y-8 pb-20 pt-16">
+            <div className="max-w-7xl mx-auto space-y-6 pb-20 pt-20">
+
+                {/* Back Link Button */}
+                <div className="flex items-center">
+                    <Link
+                        href="/"
+                        className="inline-flex items-center gap-2 px-4 py-2 rounded-xl border border-slate-200 bg-white/85 hover:bg-slate-50 text-slate-600 hover:text-indigo-600 transition-all text-sm font-semibold shadow-sm group"
+                    >
+                        <ArrowLeft size={16} className="transition-transform group-hover:-translate-x-1" />
+                        <span>一覧に戻る</span>
+                    </Link>
+                </div>
 
                 {/* Profile Header Card */}
-                <div className="bg-white/80 backdrop-blur-md rounded-3xl border border-slate-200/80 p-6 md:p-10 shadow-sm relative overflow-hidden mt-6">
+                <div className="bg-white/80 backdrop-blur-md rounded-3xl border border-slate-200/80 p-6 md:p-10 shadow-sm relative overflow-hidden">
                     {/* Visual accents */}
                     <div className="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-indigo-500 to-violet-500" />
 

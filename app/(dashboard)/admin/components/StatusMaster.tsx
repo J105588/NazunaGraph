@@ -26,7 +26,7 @@ export default function StatusMaster() {
     const { data: statuses, isLoading, refetch } = useQuery({
         queryKey: ['admin-statuses'],
         queryFn: fetchStatuses,
-        refetchInterval: 5000,
+        refetchInterval: 60000,
     })
 
     const [isCreating, setIsCreating] = useState(false)

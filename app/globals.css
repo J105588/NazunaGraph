@@ -82,7 +82,7 @@
     border-radius: 12px;
     background-color: white;
     border: 1px solid #cbd5e1;
-    color: var(--text-primary);
+    color: var(--text-primary) !important;
     font-size: 0.95rem;
     transition: all 0.3s ease;
     outline: none;

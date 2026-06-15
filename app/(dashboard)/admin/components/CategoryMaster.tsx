@@ -26,7 +26,7 @@ export default function CategoryMaster() {
     const { data: categories, isLoading, refetch } = useQuery({
         queryKey: ['admin-categories'],
         queryFn: fetchCategories,
-        refetchInterval: 5000,
+        refetchInterval: 60000,
     })
 
     const [isCreating, setIsCreating] = useState(false)

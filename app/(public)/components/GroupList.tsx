@@ -1,5 +1,6 @@
 'use client'
 
+import { useRealtimeSubscription } from '@/hooks/useRealtimeSubscription'
 import { createClient } from '@/utils/supabase/client'
 import { useQuery } from '@tanstack/react-query'
 import { motion, AnimatePresence } from 'framer-motion'
@@ -7,7 +8,6 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { ArrowRight, Loader2, Search, Filter, X } from 'lucide-react'
 import { useState } from 'react'
-
 
 type GroupProfile = {
     id: string
@@ -59,10 +59,14 @@ export default function GroupList() {
     const [searchQuery, setSearchQuery] = useState('')
     const [statusFilter, setStatusFilter] = useState<'all' | 'selling' | 'few' | 'soldout'>('all')
 
+    // Real-time subscriptions for group profile and item changes
+    useRealtimeSubscription('profiles', ['groups'])
+    useRealtimeSubscription('items', ['groups'])
+
     const { data: groups, isLoading, error } = useQuery({
         queryKey: ['groups'],
         queryFn: fetchGroups,
-        refetchInterval: 10000,
+        refetchInterval: 30000,
     })
 
     if (isLoading) {
@@ -188,7 +192,7 @@ export default function GroupList() {
                     <input
                         type="text"
                         placeholder="展示名やクラス名で検索..."
-                        className="art-input pl-12 pr-10 border border-slate-200 bg-white"
+                        className="art-input pl-12 pr-10 border border-slate-200 bg-white text-slate-800"
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
                     />
@@ -212,8 +216,8 @@ export default function GroupList() {
                     <button
                         onClick={() => setStatusFilter('all')}
                         className={`px-3 py-1.5 rounded-full text-xs font-semibold border transition-all ${statusFilter === 'all'
-                                ? 'bg-indigo-600 border-indigo-600 text-white shadow-sm shadow-indigo-100'
-                                : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'
+                            ? 'bg-indigo-600 border-indigo-600 text-white shadow-sm shadow-indigo-100'
+                            : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'
                             }`}
                     >
                         すべて
@@ -221,8 +225,8 @@ export default function GroupList() {
                     <button
                         onClick={() => setStatusFilter('selling')}
                         className={`px-3 py-1.5 rounded-full text-xs font-semibold border transition-all flex items-center gap-1.5 ${statusFilter === 'selling'
-                                ? 'bg-emerald-600 border-emerald-600 text-white shadow-sm shadow-emerald-100'
-                                : 'bg-emerald-50/50 border-emerald-200 text-emerald-700 hover:bg-emerald-50'
+                            ? 'bg-emerald-600 border-emerald-600 text-white shadow-sm shadow-emerald-100'
+                            : 'bg-emerald-50/50 border-emerald-200 text-emerald-700 hover:bg-emerald-50'
                             }`}
                     >
                         <span className="w-2 h-2 rounded-full bg-emerald-500" />
@@ -231,8 +235,8 @@ export default function GroupList() {
                     <button
                         onClick={() => setStatusFilter('few')}
                         className={`px-3 py-1.5 rounded-full text-xs font-semibold border transition-all flex items-center gap-1.5 ${statusFilter === 'few'
-                                ? 'bg-amber-500 border-amber-500 text-white shadow-sm shadow-amber-100'
-                                : 'bg-amber-50/50 border-amber-200 text-amber-700 hover:bg-amber-50'
+                            ? 'bg-amber-500 border-amber-500 text-white shadow-sm shadow-amber-100'
+                            : 'bg-amber-50/50 border-amber-200 text-amber-700 hover:bg-amber-50'
                             }`}
                     >
                         <span className="w-2 h-2 rounded-full bg-amber-500" />
@@ -241,8 +245,8 @@ export default function GroupList() {
                     <button
                         onClick={() => setStatusFilter('soldout')}
                         className={`px-3 py-1.5 rounded-full text-xs font-semibold border transition-all flex items-center gap-1.5 ${statusFilter === 'soldout'
-                                ? 'bg-rose-600 border-rose-600 text-white shadow-sm shadow-rose-100'
-                                : 'bg-rose-50/50 border-rose-200 text-rose-700 hover:bg-rose-50'
+                            ? 'bg-rose-600 border-rose-600 text-white shadow-sm shadow-rose-100'
+                            : 'bg-rose-50/50 border-rose-200 text-rose-700 hover:bg-rose-50'
                             }`}
                     >
                         <span className="w-2 h-2 rounded-full bg-rose-500" />
@@ -278,8 +282,8 @@ export default function GroupList() {
                                         // Define the card content separately
                                         const CardContent = (
                                             <div className={`art-card group h-full flex flex-col justify-between transition-all duration-300 border border-slate-200 bg-white rounded-2xl overflow-hidden ${status.isPreparing
-                                                    ? 'bg-slate-50 border-slate-200/60 opacity-60 cursor-not-allowed shadow-none'
-                                                    : 'hover:border-indigo-200 hover:shadow-md'
+                                                ? 'bg-slate-50 border-slate-200/60 opacity-60 cursor-not-allowed shadow-none'
+                                                : 'hover:border-indigo-200 hover:shadow-md'
                                                 }`}>
 
                                                 {/* Image Area */}
@@ -373,7 +377,7 @@ export default function GroupList() {
                             className="flex flex-col items-center justify-center py-20 text-center bg-white rounded-2xl border border-slate-100 shadow-sm max-w-lg mx-auto"
                         >
                             <span className="text-4xl mb-3">🔍</span>
-                            <p className="text-slate-600 font-semibold">該当する店舗が見つかりませんでした</p>
+                            <p className="text-slate-600 font-semibold">該当する団体が見つかりませんでした</p>
                             <p className="text-slate-400 text-xs mt-1">検索キーワードや絞り込み条件を変えてみてください。</p>
                         </motion.div>
                     )}

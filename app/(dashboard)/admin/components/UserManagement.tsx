@@ -57,6 +57,8 @@ export default function UserManagement() {
 
     // Subscribe to system_settings changes
     useRealtimeSubscription('system_settings', ['disabled-registration-users'])
+    // Subscribe to profiles changes
+    useRealtimeSubscription('profiles', ['admin-users'])
 
     const { data: disabledUsers, refetch: refetchDisabledUsers } = useQuery({
         queryKey: ['disabled-registration-users'],
@@ -203,7 +205,7 @@ export default function UserManagement() {
                     placeholder="名前、メール、団体名で検索..."
                     value={search}
                     onChange={(e) => setSearch(e.target.value)}
-                    className="art-input pl-10 border border-slate-200 bg-white py-1.5 text-xs"
+                    className="art-input pl-10 border border-slate-200 bg-white py-1.5 text-xs text-slate-800"
                 />
             </div>
 

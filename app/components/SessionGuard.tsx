@@ -12,153 +12,199 @@ export default function SessionGuard({ children }: { children: React.ReactNode }
     const [supabase] = useState(() => createClient())
     const lastLogoutAt = useRef<string | null>(null)
 
+    // Decoupled states to manage routing restrictions without tearing down subscriptions
+    const [isMaintenance, setIsMaintenance] = useState<boolean | null>(null)
+    const [userRole, setUserRole] = useState<string | null>(null)
+    const [isUserLoaded, setIsUserLoaded] = useState(false)
+    const [currentUser, setCurrentUser] = useState<any>(null)
+
+    // 1. Listen to Auth State Changes
     useEffect(() => {
-        // 1. Check Maintenance Mode
-        const checkMaintenance = async () => {
+        const checkUser = async () => {
+            const { data: { user } } = await supabase.auth.getUser()
+            setCurrentUser(user)
+        }
+        checkUser()
+
+        const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+            setCurrentUser(session?.user || null)
+        })
+
+        return () => {
+            subscription.unsubscribe()
+        }
+    }, [supabase])
+
+    // 2. User-specific Subscriptions (Force Logout)
+    useEffect(() => {
+        if (!currentUser) {
+            setUserRole(null)
+            setIsUserLoaded(true)
+            return
+        }
+
+        let active = true
+        let profileChannel: any = null
+
+        const setupUserSubscription = async () => {
+            const { data: profile } = await supabase
+                .from('profiles')
+                .select('role, force_logout_at')
+                .eq('id', currentUser.id)
+                .single()
+
+            if (!active) return
+            if (profile) {
+                setUserRole(profile.role)
+                lastLogoutAt.current = profile.force_logout_at
+            }
+            setIsUserLoaded(true)
+
+            profileChannel = supabase
+                .channel(`profile_guard_${currentUser.id}`)
+                .on(
+                    'postgres_changes',
+                    { event: 'UPDATE', schema: 'public', table: 'profiles', filter: `id=eq.${currentUser.id}` },
+                    async (payload) => {
+                        if (payload.new.force_logout_at !== lastLogoutAt.current) {
+                            lastLogoutAt.current = payload.new.force_logout_at
+                            await logSecurityEvent(currentUser.id, 'Force Logout Triggered')
+
+                            // Set LocalStorage Lockout (24 hours)
+                            const lockoutUntil = Date.now() + (24 * 60 * 60 * 1000)
+                            localStorage.setItem('security_lockout_until', lockoutUntil.toString())
+
+                            await supabase.auth.signOut()
+                            toast.error('当アカウントは管理者により強制的にログアウトされました。\n24時間のセキュリティ保護が適用されます。')
+                            router.replace('/login')
+                        }
+                    }
+                )
+                .subscribe()
+        }
+
+        setupUserSubscription()
+
+        return () => {
+            active = false
+            if (profileChannel) supabase.removeChannel(profileChannel)
+        }
+    }, [supabase, router, currentUser])
+
+    // 3. Global Subscriptions (Maintenance Mode) and Background Polling (Once on Mount)
+    useEffect(() => {
+        let active = true
+        let settingsChannel: any = null
+        let intervalId: any = null
+
+        const initGlobalGuard = async () => {
+            // Initial Maintenance Mode Fetch
             const { data: settings } = await supabase
                 .from('system_settings')
                 .select('value')
                 .eq('key', 'maintenance_mode')
                 .single()
 
-            if (settings?.value === true) {
-                const { data: { user } } = await supabase.auth.getUser()
-                if (user) {
-                    const { data: profile } = await supabase
-                        .from('profiles')
-                        .select('role')
-                        .eq('id', user.id)
-                        .single()
-
-                    if (profile?.role !== 'admin') {
-                        if (pathname !== '/maintenance') {
-                            router.replace('/maintenance')
-                        }
-                    }
-                } else if (pathname !== '/maintenance' && pathname !== '/login') {
-                    // Allow login page access so admins can login
-                    router.replace('/maintenance')
-                }
-            } else {
-                if (pathname === '/maintenance') {
-                    router.replace('/')
-                }
-            }
-        }
-
-        // 2. Realtime Subscriptions
-        const settingsChannel = supabase
-            .channel('system_settings_guard')
-            .on(
-                'postgres_changes',
-                { event: 'UPDATE', schema: 'public', table: 'system_settings', filter: 'key=eq.maintenance_mode' },
-                (payload) => {
-                    if (payload.new.value === true) {
-                        checkMaintenance() // Re-check to verify role
-                        toast('メンテナンスモードが開始されました', { icon: '⚠' })
-                    } else {
-                        if (pathname === '/maintenance') {
-                            router.replace('/')
-                            toast.success('メンテナンスが終了しました')
-                        }
-                    }
-                }
-            )
-            .subscribe()
-
-        const checkForceLogout = async () => {
-            const { data: { user } } = await supabase.auth.getUser()
-            if (!user) return
-
-            // Initial fetch to set ref
-            const { data: initialProfile } = await supabase
-                .from('profiles')
-                .select('force_logout_at')
-                .eq('id', user.id)
-                .single()
-
-            if (initialProfile) {
-                lastLogoutAt.current = initialProfile.force_logout_at
+            if (settings && active) {
+                setIsMaintenance(settings.value === true)
             }
 
-            const profileChannel = supabase
-                .channel(`profile_guard_${user.id}`)
+            // Realtime Maintenance Subscription
+            settingsChannel = supabase
+                .channel('system_settings_guard')
                 .on(
                     'postgres_changes',
-                    { event: 'UPDATE', schema: 'public', table: 'profiles', filter: `id=eq.${user.id}` },
+                    { event: 'UPDATE', schema: 'public', table: 'system_settings', filter: 'key=eq.maintenance_mode' },
                     async (payload) => {
-                        // If force_logout_at changed
-                        if (payload.new.force_logout_at !== payload.old.force_logout_at) {
-                            // 1. Log Security Event
-                            await logSecurityEvent(user.id, 'Force Logout Triggered')
+                        const newMaintenanceVal = payload.new.value === true
+                        setIsMaintenance(newMaintenanceVal)
 
-                            // 2. Set LocalStorage Lockout (24 hours)
-                            const lockoutUntil = Date.now() + (24 * 60 * 60 * 1000)
-                            localStorage.setItem('security_lockout_until', lockoutUntil.toString())
-
-                            // 3. Logout
-                            await supabase.auth.signOut()
-                            toast.error('当アカウントは管理者により強制的にログアウトされました。\n24時間のセキュリティ保護が適用されます。')
-                            router.replace('/login')
+                        if (newMaintenanceVal) {
+                            toast('メンテナンスモードが開始されました', { icon: '⚠' })
+                            // Refresh user role on transition
+                            const { data: { user: u } } = await supabase.auth.getUser()
+                            if (u && active) {
+                                const { data: p } = await supabase
+                                    .from('profiles')
+                                    .select('role')
+                                    .eq('id', u.id)
+                                    .single()
+                                if (p && active) {
+                                    setUserRole(p.role)
+                                }
+                            }
+                        } else {
+                            toast.success('メンテナンスが終了しました')
                         }
-                        // Update ref so polling doesn't trigger again
-                        lastLogoutAt.current = payload.new.force_logout_at
                     }
                 )
                 .subscribe()
 
-            return () => {
-                supabase.removeChannel(profileChannel)
-            }
-        }
-
-        // 3. Polling Fallback (Every 5 seconds)
-        const pollStatus = async () => {
-            // Poll Maintenance
-            await checkMaintenance()
-
-            // Poll Force Logout
-            const { data: { user } } = await supabase.auth.getUser()
-            if (user) {
-                const { data: profile } = await supabase
-                    .from('profiles')
-                    .select('force_logout_at')
-                    .eq('id', user.id)
+            // Polling Fallback (relaxed to 15 seconds to reduce server load since realtime is active)
+            const pollStatus = async () => {
+                const { data: s } = await supabase
+                    .from('system_settings')
+                    .select('value')
+                    .eq('key', 'maintenance_mode')
                     .single()
+                
+                if (s && active) {
+                    setIsMaintenance(s.value === true)
+                }
 
-                if (profile) {
-                    // If ref is set and different -> Logout
-                    // Note: If realtime handled it, ref would be updated.
-                    if (lastLogoutAt.current !== null && profile.force_logout_at !== lastLogoutAt.current) {
-                        // 1. Log Security Event
-                        await logSecurityEvent(user.id, 'Force Logout Triggered (Polling)')
+                const { data: { user: u } } = await supabase.auth.getUser()
+                if (u && active) {
+                    const { data: p } = await supabase
+                        .from('profiles')
+                        .select('role, force_logout_at')
+                        .eq('id', u.id)
+                        .single()
 
-                        // 2. Set LocalStorage Lockout (24 hours)
-                        const lockoutUntil = Date.now() + (24 * 60 * 60 * 1000)
-                        localStorage.setItem('security_lockout_until', lockoutUntil.toString())
+                    if (p && active) {
+                        setUserRole(p.role)
+                        if (lastLogoutAt.current !== null && p.force_logout_at !== lastLogoutAt.current) {
+                            lastLogoutAt.current = p.force_logout_at
+                            await logSecurityEvent(u.id, 'Force Logout Triggered (Polling)')
 
-                        await supabase.auth.signOut()
-                        toast.error('当アカウントは管理者により強制的にログアウトされました。\n24時間のセキュリティ保護が適用されます。')
-                        router.replace('/login')
+                            const lockoutUntil = Date.now() + (24 * 60 * 60 * 1000)
+                            localStorage.setItem('security_lockout_until', lockoutUntil.toString())
+
+                            await supabase.auth.signOut()
+                            toast.error('当アカウントは管理者により強制的にログアウトされました。\n24時間のセキュリティ保護が適用されます。')
+                            router.replace('/login')
+                        }
                     }
-                    lastLogoutAt.current = profile.force_logout_at
                 }
             }
+
+            intervalId = setInterval(pollStatus, 15000)
         }
 
-        // Initial checks
-        checkMaintenance()
-        const cleanupProfile = checkForceLogout()
-
-        // Start Polling
-        const intervalId = setInterval(pollStatus, 5000)
+        initGlobalGuard()
 
         return () => {
-            supabase.removeChannel(settingsChannel)
-            cleanupProfile.then(cleanup => cleanup && cleanup())
-            clearInterval(intervalId)
+            active = false
+            if (settingsChannel) supabase.removeChannel(settingsChannel)
+            if (intervalId) clearInterval(intervalId)
         }
-    }, [pathname, router, supabase])
+    }, [supabase, router])
+
+    // 4. Routing Validation & Redirect Enforcement
+    useEffect(() => {
+        if (isMaintenance === null || !isUserLoaded) return
+
+        if (isMaintenance) {
+            if (userRole !== 'admin') {
+                if (pathname !== '/maintenance' && pathname !== '/login') {
+                    router.replace('/maintenance')
+                }
+            }
+        } else {
+            if (pathname === '/maintenance') {
+                router.replace('/')
+            }
+        }
+    }, [pathname, isMaintenance, userRole, isUserLoaded, router])
 
     return <>{children}</>
 }
