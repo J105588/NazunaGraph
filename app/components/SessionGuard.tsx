@@ -43,6 +43,8 @@ export default function SessionGuard({ children }: { children: React.ReactNode }
             return
         }
 
+        setIsUserLoaded(false) // Reset loading state to prevent race conditions during profile fetch
+
         let active = true
         let profileChannel: any = null
 
@@ -194,7 +196,11 @@ export default function SessionGuard({ children }: { children: React.ReactNode }
         if (isMaintenance === null || !isUserLoaded) return
 
         if (isMaintenance) {
-            if (userRole !== 'admin') {
+            if (userRole === 'admin') {
+                if (pathname === '/maintenance') {
+                    router.replace('/')
+                }
+            } else {
                 if (pathname !== '/maintenance' && pathname !== '/login') {
                     router.replace('/maintenance')
                 }
