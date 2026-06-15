@@ -94,10 +94,10 @@ export default function GuestList({ initialItems, ownerId }: { initialItems: Ite
 
     return (
         <div className="space-y-8">
-            
+
             {/* Search and Filters panel */}
             <div className="bg-white/70 backdrop-blur-md rounded-2xl border border-slate-200/80 p-5 shadow-sm flex flex-col md:flex-row gap-4 items-center justify-between">
-                
+
                 {/* Search Bar */}
                 <div className="relative group w-full md:max-w-xs">
                     <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 h-4 w-4 transition-colors group-focus-within:text-indigo-600" />
@@ -109,7 +109,7 @@ export default function GuestList({ initialItems, ownerId }: { initialItems: Ite
                         onChange={(e) => setSearch(e.target.value)}
                     />
                     {search && (
-                        <button 
+                        <button
                             onClick={() => setSearch('')}
                             className="absolute right-3 top-1/2 -translate-y-1/2 p-0.5 text-slate-400 hover:text-slate-600 rounded-full hover:bg-slate-100"
                         >
@@ -124,44 +124,40 @@ export default function GuestList({ initialItems, ownerId }: { initialItems: Ite
                         <Filter className="w-3 h-3" />
                         状態:
                     </span>
-                    
+
                     <button
                         onClick={() => setStatusFilter('all')}
-                        className={`px-3 py-1 rounded-full text-xs font-semibold border transition-all ${
-                            statusFilter === 'all'
+                        className={`px-3 py-1 rounded-full text-xs font-semibold border transition-all ${statusFilter === 'all'
                                 ? 'bg-indigo-600 border-indigo-600 text-white shadow-sm shadow-indigo-100'
                                 : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'
-                        }`}
+                            }`}
                     >
                         すべて
                     </button>
                     <button
                         onClick={() => setStatusFilter('selling')}
-                        className={`px-3 py-1 rounded-full text-xs font-semibold border transition-all flex items-center gap-1 ${
-                            statusFilter === 'selling'
+                        className={`px-3 py-1 rounded-full text-xs font-semibold border transition-all flex items-center gap-1 ${statusFilter === 'selling'
                                 ? 'bg-emerald-600 border-emerald-600 text-white shadow-sm shadow-emerald-100'
                                 : 'bg-emerald-50 border-emerald-200 text-emerald-700 hover:bg-emerald-50'
-                        }`}
+                            }`}
                     >
                         販売中
                     </button>
                     <button
                         onClick={() => setStatusFilter('few')}
-                        className={`px-3 py-1 rounded-full text-xs font-semibold border transition-all flex items-center gap-1 ${
-                            statusFilter === 'few'
+                        className={`px-3 py-1 rounded-full text-xs font-semibold border transition-all flex items-center gap-1 ${statusFilter === 'few'
                                 ? 'bg-amber-500 border-amber-500 text-white shadow-sm shadow-amber-100'
                                 : 'bg-amber-50 border-amber-200 text-amber-700 hover:bg-amber-50'
-                        }`}
+                            }`}
                     >
-                        少
+                        残りわずか
                     </button>
                     <button
                         onClick={() => setStatusFilter('soldout')}
-                        className={`px-3 py-1 rounded-full text-xs font-semibold border transition-all flex items-center gap-1 ${
-                            statusFilter === 'soldout'
+                        className={`px-3 py-1 rounded-full text-xs font-semibold border transition-all flex items-center gap-1 ${statusFilter === 'soldout'
                                 ? 'bg-rose-600 border-rose-600 text-white shadow-sm shadow-rose-100'
                                 : 'bg-rose-50 border-rose-200 text-rose-700 hover:bg-rose-50'
-                        }`}
+                            }`}
                     >
                         完売
                     </button>
@@ -174,7 +170,7 @@ export default function GuestList({ initialItems, ownerId }: { initialItems: Ite
                     <AnimatePresence mode="popLayout">
                         {filteredItems.map((item, index) => {
                             const style = getStatusStyle(item.status?.color)
-                            
+
                             return (
                                 <motion.div
                                     key={item.id}
@@ -205,16 +201,16 @@ export default function GuestList({ initialItems, ownerId }: { initialItems: Ite
                                         <div className="absolute top-3 right-3 z-20">
                                             <span
                                                 className={`
-                                                    inline-flex items-center gap-1.5 px-3 py-1 text-xs font-semibold rounded-full border bg-white backdrop-blur-md bg-opacity-95 shadow-sm
+                                                    inline-flex items-center gap-1.5 pl-2.5 pr-3 py-1 text-xs font-semibold rounded-full border bg-white backdrop-blur-md bg-opacity-95 shadow-sm
                                                     ${style.bg}
                                                 `}
                                             >
-                                                <span 
-                                                    className="pulsing-dot" 
-                                                    style={{ 
-                                                        backgroundColor: style.dot.replace('bg-', ''), 
-                                                        '--glow-color': style.glow 
-                                                    } as React.CSSProperties} 
+                                                <span
+                                                    className="pulsing-dot"
+                                                    style={{
+                                                        backgroundColor: style.glow,
+                                                        '--glow-color': style.glow
+                                                    } as React.CSSProperties}
                                                 />
                                                 {item.status?.label || '未設定'}
                                             </span>
@@ -227,7 +223,7 @@ export default function GuestList({ initialItems, ownerId }: { initialItems: Ite
                                             <h3 className="text-lg font-bold text-slate-800 group-hover:text-indigo-600 transition-colors line-clamp-2 leading-snug">
                                                 {item.name}
                                             </h3>
-                                            
+
                                             {item.owner && (
                                                 <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">
                                                     {item.owner.display_name || item.owner.group_name}

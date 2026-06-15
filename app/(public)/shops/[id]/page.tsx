@@ -46,26 +46,41 @@ export default async function ShopPage({ params }: { params: Promise<{ id: strin
         <main className="min-h-screen p-4 md:p-12 relative overflow-hidden bg-slate-50/50">
             <LuxuriousBackground />
 
-            {/* Navigation Header */}
+            {/* Sticky Navigation Bar */}
             <div className="fixed top-0 left-0 w-full z-40 bg-white/70 backdrop-blur-md border-b border-slate-200/80 px-4 md:px-12 py-3">
                 <div className="max-w-7xl mx-auto flex justify-between items-center">
-                    <Link href="/" className="inline-flex items-center gap-2 text-slate-500 hover:text-indigo-600 transition-colors text-sm font-semibold group">
-                        <ArrowLeft size={16} className="transition-transform group-hover:-translate-x-1" />
-                        <span>一覧に戻る</span>
-                    </Link>
-                    <span className="text-xs font-semibold text-slate-400 tracking-wider">
-                        店舗詳細メニュー
-                    </span>
+                    <div className="flex items-center gap-4">
+                        <Link href="/" className="flex items-center gap-3 group">
+                            <span className="text-xl font-bold bg-gradient-to-r from-indigo-600 to-violet-600 bg-clip-text text-transparent tracking-wide">
+                                Nazuna Graph
+                            </span>
+                        </Link>
+                        <span className="h-4 w-px bg-slate-200 hidden sm:inline-block" />
+                        <Link href="/" className="inline-flex items-center gap-2 text-slate-500 hover:text-indigo-600 transition-colors text-sm font-semibold group hidden sm:inline-flex">
+                            <ArrowLeft size={16} className="transition-transform group-hover:-translate-x-1" />
+                            <span>一覧に戻る</span>
+                        </Link>
+                    </div>
+
+                    <div className="flex items-center gap-4">
+                        <Link href="/" className="inline-flex items-center gap-1.5 text-slate-500 hover:text-indigo-600 transition-colors text-xs font-semibold group sm:hidden">
+                            <ArrowLeft size={14} className="transition-transform group-hover:-translate-x-0.5" />
+                            <span>戻る</span>
+                        </Link>
+                        <span className="text-xs font-semibold text-slate-400 tracking-wider">
+                            団体詳細メニュー
+                        </span>
+                    </div>
                 </div>
             </div>
 
             <div className="max-w-7xl mx-auto space-y-8 pb-20 pt-16">
-                
+
                 {/* Profile Header Card */}
                 <div className="bg-white/80 backdrop-blur-md rounded-3xl border border-slate-200/80 p-6 md:p-10 shadow-sm relative overflow-hidden mt-6">
                     {/* Visual accents */}
                     <div className="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-indigo-500 to-violet-500" />
-                    
+
                     <div className="space-y-4 max-w-4xl">
                         <div className="flex flex-wrap items-center gap-2">
                             {profile?.category?.name && (

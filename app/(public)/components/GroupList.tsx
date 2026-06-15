@@ -100,10 +100,10 @@ export default function GroupList() {
         // Check if ANY item is selling (Green/Teal/Emerald)
         const hasAvailable = items.some(i => i.status?.color.includes('green') || i.status?.color.includes('emerald') || i.status?.color.includes('teal'))
         if (hasAvailable) {
-            return { 
-                label: '販売中', 
-                bgClass: 'bg-emerald-50 border-emerald-200 text-emerald-700 shadow-sm shadow-emerald-100/50', 
-                dotClass: 'bg-emerald-500', 
+            return {
+                label: '販売中',
+                bgClass: 'bg-emerald-50 border-emerald-200 text-emerald-700 shadow-sm shadow-emerald-100/50',
+                dotClass: 'bg-emerald-500',
                 glowColor: '#10b981',
                 isPreparing: false,
                 key: 'selling'
@@ -113,10 +113,10 @@ export default function GroupList() {
         // Check if ANY item is low stock (Yellow/Orange)
         const hasFew = items.some(i => i.status?.color.includes('yellow') || i.status?.color.includes('orange'))
         if (hasFew) {
-            return { 
-                label: '残りわずか', 
-                bgClass: 'bg-amber-50 border-amber-200 text-amber-700 shadow-sm shadow-amber-100/50', 
-                dotClass: 'bg-amber-500', 
+            return {
+                label: '残りわずか',
+                bgClass: 'bg-amber-50 border-amber-200 text-amber-700 shadow-sm shadow-amber-100/50',
+                dotClass: 'bg-amber-500',
                 glowColor: '#f59e0b',
                 isPreparing: false,
                 key: 'few'
@@ -128,10 +128,10 @@ export default function GroupList() {
         if (allPreparing) return { label: '準備中', bgClass: 'bg-slate-50 border-slate-200 text-slate-600', dotClass: 'bg-slate-400', glowColor: '#94a3b8', isPreparing: true, key: 'preparing' }
 
         // Otherwise assume Sold Out (Red)
-        return { 
-            label: '完売', 
-            bgClass: 'bg-rose-50 border-rose-200 text-rose-700 shadow-sm shadow-rose-100/50', 
-            dotClass: 'bg-rose-500', 
+        return {
+            label: '完売',
+            bgClass: 'bg-rose-50 border-rose-200 text-rose-700 shadow-sm shadow-rose-100/50',
+            dotClass: 'bg-rose-500',
             glowColor: '#ef4444',
             isPreparing: false,
             key: 'soldout'
@@ -143,7 +143,7 @@ export default function GroupList() {
         const displayName = (group.display_name || '').toLowerCase()
         const groupName = (group.group_name || '').toLowerCase()
         const query = searchQuery.toLowerCase()
-        
+
         // Search filter match
         const matchesSearch = displayName.includes(query) || groupName.includes(query)
         if (!matchesSearch) return false
@@ -179,7 +179,7 @@ export default function GroupList() {
 
     return (
         <div className="space-y-12">
-            
+
             {/* Filter and Search Section */}
             <div className="max-w-3xl mx-auto bg-white/70 backdrop-blur-md rounded-2xl border border-slate-200/80 p-5 md:p-6 shadow-sm space-y-4">
                 {/* Search input */}
@@ -193,7 +193,7 @@ export default function GroupList() {
                         onChange={(e) => setSearchQuery(e.target.value)}
                     />
                     {searchQuery && (
-                        <button 
+                        <button
                             onClick={() => setSearchQuery('')}
                             className="absolute right-4 top-1/2 -translate-y-1/2 p-1 text-slate-400 hover:text-slate-600 rounded-full hover:bg-slate-100 transition-colors"
                         >
@@ -208,46 +208,42 @@ export default function GroupList() {
                         <Filter className="w-3.5 h-3.5" />
                         状況で絞り込み:
                     </span>
-                    
+
                     <button
                         onClick={() => setStatusFilter('all')}
-                        className={`px-3 py-1.5 rounded-full text-xs font-semibold border transition-all ${
-                            statusFilter === 'all'
+                        className={`px-3 py-1.5 rounded-full text-xs font-semibold border transition-all ${statusFilter === 'all'
                                 ? 'bg-indigo-600 border-indigo-600 text-white shadow-sm shadow-indigo-100'
                                 : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'
-                        }`}
+                            }`}
                     >
                         すべて
                     </button>
                     <button
                         onClick={() => setStatusFilter('selling')}
-                        className={`px-3 py-1.5 rounded-full text-xs font-semibold border transition-all flex items-center gap-1.5 ${
-                            statusFilter === 'selling'
+                        className={`px-3 py-1.5 rounded-full text-xs font-semibold border transition-all flex items-center gap-1.5 ${statusFilter === 'selling'
                                 ? 'bg-emerald-600 border-emerald-600 text-white shadow-sm shadow-emerald-100'
                                 : 'bg-emerald-50/50 border-emerald-200 text-emerald-700 hover:bg-emerald-50'
-                        }`}
+                            }`}
                     >
                         <span className="w-2 h-2 rounded-full bg-emerald-500" />
                         販売中
                     </button>
                     <button
                         onClick={() => setStatusFilter('few')}
-                        className={`px-3 py-1.5 rounded-full text-xs font-semibold border transition-all flex items-center gap-1.5 ${
-                            statusFilter === 'few'
+                        className={`px-3 py-1.5 rounded-full text-xs font-semibold border transition-all flex items-center gap-1.5 ${statusFilter === 'few'
                                 ? 'bg-amber-500 border-amber-500 text-white shadow-sm shadow-amber-100'
                                 : 'bg-amber-50/50 border-amber-200 text-amber-700 hover:bg-amber-50'
-                        }`}
+                            }`}
                     >
                         <span className="w-2 h-2 rounded-full bg-amber-500" />
                         残りわずか
                     </button>
                     <button
                         onClick={() => setStatusFilter('soldout')}
-                        className={`px-3 py-1.5 rounded-full text-xs font-semibold border transition-all flex items-center gap-1.5 ${
-                            statusFilter === 'soldout'
+                        className={`px-3 py-1.5 rounded-full text-xs font-semibold border transition-all flex items-center gap-1.5 ${statusFilter === 'soldout'
                                 ? 'bg-rose-600 border-rose-600 text-white shadow-sm shadow-rose-100'
                                 : 'bg-rose-50/50 border-rose-200 text-rose-700 hover:bg-rose-50'
-                        }`}
+                            }`}
                     >
                         <span className="w-2 h-2 rounded-full bg-rose-500" />
                         完売
@@ -260,7 +256,7 @@ export default function GroupList() {
                 <AnimatePresence mode="popLayout">
                     {sortedCategories.length > 0 ? (
                         sortedCategories.map((catName) => (
-                            <motion.section 
+                            <motion.section
                                 key={catName}
                                 layout
                                 initial={{ opacity: 0 }}
@@ -281,11 +277,10 @@ export default function GroupList() {
 
                                         // Define the card content separately
                                         const CardContent = (
-                                            <div className={`art-card group h-full flex flex-col justify-between transition-all duration-300 border border-slate-200 bg-white rounded-2xl overflow-hidden ${
-                                                status.isPreparing 
-                                                    ? 'bg-slate-50 border-slate-200/60 opacity-60 cursor-not-allowed shadow-none' 
+                                            <div className={`art-card group h-full flex flex-col justify-between transition-all duration-300 border border-slate-200 bg-white rounded-2xl overflow-hidden ${status.isPreparing
+                                                    ? 'bg-slate-50 border-slate-200/60 opacity-60 cursor-not-allowed shadow-none'
                                                     : 'hover:border-indigo-200 hover:shadow-md'
-                                            }`}>
+                                                }`}>
 
                                                 {/* Image Area */}
                                                 <div className="relative aspect-[1.5] w-full overflow-hidden bg-slate-100">
@@ -307,16 +302,16 @@ export default function GroupList() {
                                                     <div className="absolute top-3 right-3 z-20">
                                                         <span
                                                             className={`
-                                                                inline-flex items-center gap-1.5 px-3 py-1 text-xs font-semibold rounded-full border bg-white backdrop-blur-md bg-opacity-95 shadow-sm
+                                                                inline-flex items-center gap-1.5 pl-2.5 pr-3 py-1 text-xs font-semibold rounded-full border bg-white backdrop-blur-md bg-opacity-95 shadow-sm
                                                                 ${status.bgClass}
                                                             `}
                                                         >
-                                                            <span 
-                                                                className="pulsing-dot" 
-                                                                style={{ 
-                                                                    backgroundColor: status.dotClass.replace('bg-', ''), // hacky clean fallback
-                                                                    '--glow-color': status.glowColor 
-                                                                } as React.CSSProperties} 
+                                                            <span
+                                                                className="pulsing-dot"
+                                                                style={{
+                                                                    backgroundColor: status.glowColor,
+                                                                    '--glow-color': status.glowColor
+                                                                } as React.CSSProperties}
                                                             />
                                                             {status.label}
                                                         </span>
@@ -342,7 +337,7 @@ export default function GroupList() {
                                                             <span className="tracking-wider text-slate-400">準備中</span>
                                                         ) : (
                                                             <span className="inline-flex items-center gap-1">
-                                                                メニューを見る
+                                                                詳細を見る
                                                                 <ArrowRight className="w-3.5 h-3.5 transition-transform group-hover:translate-x-1" />
                                                             </span>
                                                         )}
@@ -372,7 +367,7 @@ export default function GroupList() {
                             </motion.section>
                         ))
                     ) : (
-                        <motion.div 
+                        <motion.div
                             initial={{ opacity: 0 }}
                             animate={{ opacity: 1 }}
                             className="flex flex-col items-center justify-center py-20 text-center bg-white rounded-2xl border border-slate-100 shadow-sm max-w-lg mx-auto"
