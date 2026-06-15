@@ -22,7 +22,7 @@ export default function MaintenancePage() {
 
             <div className="bg-white border border-slate-200 p-8 rounded-3xl max-w-md w-full shadow-lg">
                 <div className="flex justify-center mb-6">
-                    <div className="p-4 bg-amber-50 border border-amber-200 rounded-full animate-bounce">
+                    <div className="p-4 bg-amber-50 border border-amber-200 rounded-full">
                         <AlertTriangle className="w-10 h-10 text-amber-500" />
                     </div>
                 </div>
