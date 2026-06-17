@@ -178,7 +178,7 @@ export default function GroupItemList({ userId }: { userId: string }) {
             {isRegistrationDisabled && (
                 <div className="bg-rose-50 border border-rose-200 text-rose-700 px-5 py-4 rounded-2xl text-xs font-bold flex items-center gap-2.5 shadow-sm animate-fade-in">
                     <Lock className="w-4 h-4 text-rose-600 shrink-0" />
-                    <span>※管理者によって新規商品の追加登録が制限されています。（既存商品のステータス更新や編集は可能です）</span>
+                    <span>※管理者によって新規商品の追加登録が制限されています。（既存商品のステータス更新は可能です）</span>
                 </div>
             )}
 
@@ -200,11 +200,10 @@ export default function GroupItemList({ userId }: { userId: string }) {
                 <button
                     onClick={handleCreate}
                     disabled={isRegistrationDisabled}
-                    className={`flex items-center gap-1.5 px-4 py-2 font-bold text-xs rounded-xl transition-all shadow-md ${
-                        isRegistrationDisabled
+                    className={`flex items-center gap-1.5 px-4 py-2 font-bold text-xs rounded-xl transition-all shadow-md ${isRegistrationDisabled
                             ? 'bg-slate-150 border border-slate-200 text-slate-400 cursor-not-allowed shadow-none'
                             : 'bg-indigo-600 hover:bg-indigo-700 text-white shadow-indigo-100/50 cursor-pointer'
-                    }`}
+                        }`}
                 >
                     <Plus className="w-4 h-4" />
                     <span>新規追加</span>
@@ -225,11 +224,10 @@ export default function GroupItemList({ userId }: { userId: string }) {
                 {items?.map((item) => (
                     <div
                         key={item.id}
-                        className={`p-5 rounded-2xl bg-white border transition-all ${
-                            item.is_admin_locked 
-                                ? 'border-rose-200 bg-rose-50/20' 
+                        className={`p-5 rounded-2xl bg-white border transition-all ${item.is_admin_locked
+                                ? 'border-rose-200 bg-rose-50/20'
                                 : 'border-slate-200/85 hover:border-slate-300 hover:shadow-sm'
-                        } flex flex-col lg:flex-row lg:items-center justify-between gap-5`}
+                            } flex flex-col lg:flex-row lg:items-center justify-between gap-5`}
                     >
                         <div className="flex items-start gap-4 flex-1">
                             <div className="w-16 h-16 rounded-xl bg-slate-50 border border-slate-200 flex-shrink-0 overflow-hidden relative">

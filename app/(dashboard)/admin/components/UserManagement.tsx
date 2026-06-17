@@ -256,7 +256,7 @@ export default function UserManagement() {
                                 <td className="p-3 text-slate-700 font-semibold">{user.display_name || '-'}</td>
                                 <td className="p-3 text-slate-500 font-bold">{user.group_name || '-'}</td>
                                 <td className="p-3">
-                                    {user.role === 'group' ? (
+                                    {user.role === 'group' || user.role === 'admin' ? (
                                         <div className="flex items-center gap-2">
                                             <Switch
                                                 checked={user.is_visible !== false}
@@ -359,7 +359,7 @@ export default function UserManagement() {
                                 </div>
                                 <div className="bg-white p-2 rounded-xl border border-slate-200/60 flex flex-col justify-between">
                                     <span className="block text-[8px] text-slate-400">公開状態</span>
-                                    {user.role === 'group' ? (
+                                    {user.role === 'group' || user.role === 'admin' ? (
                                         <div className="flex items-center gap-1.5 mt-0.5">
                                             <Switch
                                                 checked={user.is_visible !== false}
