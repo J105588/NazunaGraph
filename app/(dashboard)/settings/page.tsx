@@ -25,7 +25,7 @@ export default async function SettingsPage() {
         <div className="max-w-4xl mx-auto pb-20 space-y-8">
             <header className="border-b border-slate-200 pb-4">
                 <h2 className="text-2xl font-bold text-slate-800">
-                    店舗設定
+                    団体詳細設定
                 </h2>
                 <p className="text-xs font-semibold text-slate-400 uppercase tracking-widest mt-0.5">
                     一般公開されるプロフィールの変更と編集を行います

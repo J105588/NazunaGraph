@@ -264,7 +264,7 @@ export default function ProfileEditor({
                         className="w-4 h-4 text-indigo-600 border-slate-300 rounded focus:ring-indigo-500 cursor-pointer disabled:cursor-not-allowed"
                     />
                     <label htmlFor="is_visible" className="text-xs font-bold text-slate-600 cursor-pointer select-none disabled:cursor-not-allowed">
-                        一般公開ページに掲載する（チェックを外すと、店舗一覧および詳細ページが非公開になります）
+                        一般公開ページに掲載する（チェックを外すと、団体一覧および詳細ページが非公開になります）
                     </label>
                 </div>
             </div>
@@ -282,7 +282,7 @@ export default function ProfileEditor({
                 </div>
             ) : (
                 <div className="pt-4 border-t border-slate-200 text-slate-400 text-xs font-semibold flex items-center gap-1.5 bg-slate-50/50 p-3.5 rounded-2xl border border-slate-200/80">
-                    <span>※店舗情報はシステム管理者のみ編集可能です。変更を希望する場合は管理者までお問い合わせください。</span>
+                    <span>※団体情報はシステム管理者のみ編集可能です。変更を希望する場合は管理者までお問い合わせください。</span>
                 </div>
             )}
         </form>

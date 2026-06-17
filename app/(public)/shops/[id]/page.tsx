@@ -90,7 +90,7 @@ export default async function ShopPage({ params }: { params: Promise<{ id: strin
         category: item.owner?.category || null,
         category_id: item.owner?.category_id || null
     })) as unknown as ItemWithDetails[]
-    const shopName = profile?.display_name || profile?.group_name || '店舗'
+    const shopName = profile?.display_name || profile?.group_name || '団体'
 
     return (
         <main className="min-h-screen p-4 md:p-12 relative overflow-hidden bg-slate-50/50">

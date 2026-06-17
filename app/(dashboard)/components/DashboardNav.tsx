@@ -40,7 +40,7 @@ export default function DashboardNav({ role }: { role: string }) {
                 className={`${linkBaseClass} ${isActive('/settings') ? activeClass : inactiveClass}`}
             >
                 <Settings size={18} />
-                <span>店舗設定</span>
+                <span>団体詳細設定</span>
             </Link>
         </nav>
     )

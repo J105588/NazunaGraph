@@ -181,7 +181,7 @@ export default function AdminItemFormModal({ isOpen, onClose, onSuccess, initial
                                     onChange={(e) => setOwnerId(e.target.value)}
                                     className="art-input w-full bg-white border border-slate-200 text-slate-800"
                                 >
-                                    <option value="">所有店舗・団体を選択してください</option>
+                                    <option value="">所有団体を選択してください</option>
                                     {groups.map((g) => (
                                         <option key={g.id} value={g.id}>
                                             {g.role === 'admin' ? '[管理者] ' : ''}
