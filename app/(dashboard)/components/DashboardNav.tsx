@@ -19,13 +19,6 @@ export default function DashboardNav({ role }: { role: string }) {
 
     return (
         <nav className="flex space-x-2 md:flex-col md:space-x-0 md:space-y-2.5 w-full">
-            <Link
-                href="/group"
-                className={`${linkBaseClass} ${isActive('/group') ? activeClass : inactiveClass}`}
-            >
-                <LayoutDashboard size={18} />
-                <span>登録アイテム</span>
-            </Link>
             {role === 'admin' && (
                 <Link
                     href="/admin"
@@ -35,6 +28,13 @@ export default function DashboardNav({ role }: { role: string }) {
                     <span>管理者パネル</span>
                 </Link>
             )}
+            <Link
+                href="/group"
+                className={`${linkBaseClass} ${isActive('/group') ? activeClass : inactiveClass}`}
+            >
+                <LayoutDashboard size={18} />
+                <span>登録アイテム</span>
+            </Link>
             <Link
                 href="/settings"
                 className={`${linkBaseClass} ${isActive('/settings') ? activeClass : inactiveClass}`}
