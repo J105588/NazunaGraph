@@ -179,7 +179,8 @@ export default function SessionGuard({ children }: { children: React.ReactNode }
                 }
             }
 
-            intervalId = setInterval(pollStatus, 15000)
+            // Relax fallback polling to 60 seconds to reduce server load since realtime is active
+            intervalId = setInterval(pollStatus, 60000)
         }
 
         initGlobalGuard()

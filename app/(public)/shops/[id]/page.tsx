@@ -15,10 +15,31 @@ export default async function ShopPage({ params }: { params: Promise<{ id: strin
     const { data: items } = await supabase
         .from('items')
         .select(`
-            *,
-            status:status_definitions(*),
-            category:categories(*),
-            owner:profiles(*)
+            id,
+            name,
+            description,
+            image_url,
+            owner_id,
+            category_id,
+            status_id,
+            is_admin_locked,
+            updated_at,
+            status:status_definitions(
+                id,
+                label,
+                color
+            ),
+            category:categories(
+                id,
+                name
+            ),
+            owner:profiles(
+                id,
+                group_name,
+                display_name,
+                description,
+                image_url
+            )
         `)
         .eq('owner_id', id)
         .order('category_id', { ascending: true })
@@ -32,14 +53,18 @@ export default async function ShopPage({ params }: { params: Promise<{ id: strin
             display_name,
             description,
             image_url,
-            category:categories(*)
+            category:categories(
+                id,
+                name,
+                sort_order
+            )
         `)
         .eq('id', id)
         .single()
 
     const profile = profileData as any
 
-    const shopItems = (items || []) as ItemWithDetails[]
+    const shopItems = (items || []) as unknown as ItemWithDetails[]
     const shopName = profile?.display_name || profile?.group_name || '店舗'
 
     return (

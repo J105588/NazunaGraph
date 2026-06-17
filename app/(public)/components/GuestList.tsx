@@ -14,9 +14,24 @@ async function fetchItems(ownerId?: string) {
     let query = supabase
         .from('items')
         .select(`
-            *,
-            status:status_definitions(*),
-            category:categories(*),
+            id,
+            name,
+            description,
+            image_url,
+            owner_id,
+            category_id,
+            status_id,
+            is_admin_locked,
+            updated_at,
+            status:status_definitions(
+                id,
+                label,
+                color
+            ),
+            category:categories(
+                id,
+                name
+            ),
             owner:profiles(
                 id,
                 group_name,
@@ -35,7 +50,7 @@ async function fetchItems(ownerId?: string) {
     const { data, error } = await query
 
     if (error) throw error
-    return data as ItemWithDetails[]
+    return data as unknown as ItemWithDetails[]
 }
 
 export default function GuestList({ initialItems, ownerId }: { initialItems: ItemWithDetails[], ownerId?: string }) {

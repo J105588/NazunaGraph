@@ -20,6 +20,11 @@ const TRAP_PATHS = [
     '/supabase/config.json'
 ]
 
+// In-memory cache for IP verification to reduce database load.
+// Allowed (not locked) IPs are cached for 60 seconds.
+const allowedIpsCache = new Map<string, number>()
+const CACHE_TTL_MS = 60 * 1000
+
 export async function middleware(request: NextRequest) {
     let response = NextResponse.next({
         request: {
@@ -75,6 +80,9 @@ export async function middleware(request: NextRequest) {
     if (isTrap && ip !== 'unknown') {
         console.warn(`[AUTONOMOUS DEFENSE] Trap triggered by ${ip} on ${path}`)
 
+        // Remove from allowed cache immediately
+        allowedIpsCache.delete(ip)
+
         // Ban the IP immediately
         await supabase
             .from('security_logs')
@@ -95,17 +103,35 @@ export async function middleware(request: NextRequest) {
     }
 
     // 3. Lockout Check
-    // Skip checking if already on /locked or static assets
-    if (ip !== 'unknown' && !path.startsWith('/locked') && !path.startsWith('/_next') && !path.startsWith('/favicon.ico')) {
-        const { data, error } = await supabase
-            .from('security_logs')
-            .select('created_at')
-            .eq('ip_address', ip)
-            .is('resolved_at', null)
-            .gte('created_at', new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString())
-            .limit(1)
+    // Skip checking if already on /locked, static assets, or if it is a safe static file extension
+    const isStaticAsset = /\.(?:svg|png|jpg|jpeg|gif|webp|css|js|woff2?|ttf|eot)$/i.test(path)
 
-        if (data && data.length > 0) {
+    if (ip !== 'unknown' && !path.startsWith('/locked') && !path.startsWith('/_next') && !path.startsWith('/favicon.ico') && (!isStaticAsset || isTrap)) {
+        const now = Date.now()
+        const cachedExpiry = allowedIpsCache.get(ip)
+        let isLocked = false
+
+        if (cachedExpiry && cachedExpiry > now) {
+            // Cache hit - skip database query!
+        } else {
+            // Cache miss - query database
+            const { data, error } = await supabase
+                .from('security_logs')
+                .select('created_at')
+                .eq('ip_address', ip)
+                .is('resolved_at', null)
+                .gte('created_at', new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString())
+                .limit(1)
+
+            if (data && data.length > 0) {
+                isLocked = true
+            } else {
+                // Not locked, cache this result
+                allowedIpsCache.set(ip, now + CACHE_TTL_MS)
+            }
+        }
+
+        if (isLocked) {
             // Locked!
             if (path.startsWith('/api/')) {
                 return NextResponse.json(

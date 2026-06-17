@@ -9,7 +9,7 @@ import Image from 'next/image'
 import { ArrowRight, Loader2, Search, Filter, X } from 'lucide-react'
 import { useState } from 'react'
 
-type GroupProfile = {
+export type GroupProfile = {
     id: string
     display_name: string | null
     group_name: string | null
@@ -55,7 +55,7 @@ async function fetchGroups() {
     return data as unknown as GroupProfile[]
 }
 
-export default function GroupList() {
+export default function GroupList({ initialGroups }: { initialGroups?: GroupProfile[] }) {
     const [searchQuery, setSearchQuery] = useState('')
     const [statusFilter, setStatusFilter] = useState<'all' | 'selling' | 'few' | 'soldout'>('all')
 
@@ -66,6 +66,7 @@ export default function GroupList() {
     const { data: groups, isLoading, error } = useQuery({
         queryKey: ['groups'],
         queryFn: fetchGroups,
+        initialData: initialGroups,
         refetchInterval: 30000,
     })
 
