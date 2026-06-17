@@ -5,12 +5,32 @@
 -- 1. CLEAN UP EXISTING TRIGGERS & CONSTRAINTS
 -- ==========================================
 DROP TRIGGER IF EXISTS on_profile_role_change ON public.profiles;
+DROP TRIGGER IF EXISTS on_profile_role_change ON public.profiles_data;
 DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
+DROP TRIGGER IF EXISTS trg_profiles_insert_trigger ON public.profiles;
+DROP TRIGGER IF EXISTS trg_profiles_update_trigger ON public.profiles;
+DROP TRIGGER IF EXISTS trg_profiles_delete_trigger ON public.profiles;
 
 -- ==========================================
 -- 2. RENAME TABLE 'profiles' TO 'profiles_data'
 -- ==========================================
-ALTER TABLE IF EXISTS public.profiles RENAME TO profiles_data;
+DO $$
+BEGIN
+  -- Rename profiles to profiles_data only if profiles exists as a base table
+  -- and profiles_data does not exist yet.
+  IF EXISTS (
+    SELECT 1 FROM information_schema.tables 
+    WHERE table_schema = 'public' 
+      AND table_name = 'profiles' 
+      AND table_type = 'BASE TABLE'
+  ) AND NOT EXISTS (
+    SELECT 1 FROM information_schema.tables 
+    WHERE table_schema = 'public' 
+      AND table_name = 'profiles_data'
+  ) THEN
+    ALTER TABLE public.profiles RENAME TO profiles_data;
+  END IF;
+END $$;
 
 -- ==========================================
 -- 3. UPDATE USER CREATION TRIGGER FUNCTION
@@ -186,3 +206,33 @@ CREATE POLICY "Authenticated Upload"
       (storage.foldername(name))[1] = 'profile-' || auth.uid()::text
     )
   );
+
+-- ==========================================
+-- 9. FIX REALTIME PUBLICATION FOR RENAMED TABLE
+-- ==========================================
+-- After renaming profiles -> profiles_data, the old publication entry
+-- becomes stale (pointing to the view, which cannot be published).
+-- Remove the stale entry and add the real underlying table.
+DO $$
+BEGIN
+  -- Remove profiles view from publication if it exists
+  IF EXISTS (
+    SELECT 1 FROM pg_publication_tables 
+    WHERE pubname = 'supabase_realtime' 
+      AND schemaname = 'public' 
+      AND tablename = 'profiles'
+  ) THEN
+    ALTER PUBLICATION supabase_realtime DROP TABLE public.profiles;
+  END IF;
+
+  -- Add profiles_data table to publication if it's not already a member
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_publication_tables 
+    WHERE pubname = 'supabase_realtime' 
+      AND schemaname = 'public' 
+      AND tablename = 'profiles_data'
+  ) THEN
+    ALTER PUBLICATION supabase_realtime ADD TABLE public.profiles_data;
+  END IF;
+END $$;
+ALTER TABLE public.profiles_data REPLICA IDENTITY FULL;

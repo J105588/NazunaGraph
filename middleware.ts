@@ -95,7 +95,7 @@ export async function middleware(request: NextRequest) {
 
         if (path.startsWith('/api/')) {
             return NextResponse.json(
-                { error: 'Access denied: Honeypot trap triggered' },
+                { error: 'Access denied' },
                 { status: 403, headers: { 'Access-Control-Allow-Origin': '*' } }
             )
         }
@@ -135,7 +135,7 @@ export async function middleware(request: NextRequest) {
             // Locked!
             if (path.startsWith('/api/')) {
                 return NextResponse.json(
-                    { error: 'Access denied: Your IP address is locked' },
+                    { error: 'Access denied' },
                     { status: 403, headers: { 'Access-Control-Allow-Origin': '*' } }
                 )
             }

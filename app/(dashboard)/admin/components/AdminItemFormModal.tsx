@@ -65,7 +65,13 @@ export default function AdminItemFormModal({ isOpen, onClose, onSuccess, initial
         try {
             setUploading(true)
             const fileExt = file.name.split('.').pop()
-            const fileName = `${ownerId || 'admin-upload'}/${Math.random()}.${fileExt}`
+            // Use ownerId for the path. If no ownerId is set, fall back to the current user's UID.
+            let uploadFolder = ownerId
+            if (!uploadFolder) {
+                const { data: { user } } = await supabase.auth.getUser()
+                uploadFolder = user?.id || 'unknown'
+            }
+            const fileName = `${uploadFolder}/${Math.random()}.${fileExt}`
             const filePath = `${fileName}`
 
             const { error: uploadError } = await supabase.storage
