@@ -81,7 +81,7 @@ export default async function ShopPage({ params }: { params: Promise<{ id: strin
                         一覧に戻る
                     </Link>
                     <footer className="text-slate-400 text-[10px] tracking-widest uppercase pt-4">
-                        © 2026 市川学園 & Junxiang Jin. All rights reserved.
+                        © 2026 なずな祭実行委員会 & Junxiang Jin. All rights reserved.
                     </footer>
                 </div>
             </main>

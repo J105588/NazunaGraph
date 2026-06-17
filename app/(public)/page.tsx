@@ -34,7 +34,7 @@ export default async function Home() {
                 <GroupList />
 
                 <footer className="text-center text-slate-400 text-xs font-light tracking-widest py-16 border-t border-slate-200/50 mt-16 max-w-md mx-auto">
-                    © 2026 市川学園 & Junxiang Jin. All rights reserved.
+                    © 2026 なずな祭実行委員会 & Junxiang Jin. All rights reserved.
                 </footer>
             </div>
         </main>

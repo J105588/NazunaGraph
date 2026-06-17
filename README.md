@@ -1,6 +1,6 @@
 # NazunaGraph
 
-市川学園文化祭向けの在庫管理プラットフォーム。Next.js 16 (App Router) と Supabase を基盤とし、高度なリアルタイム同期と堅牢な自律型セキュリティ機能を提供する。
+文化祭向けの在庫管理プラットフォーム。Next.js 16 (App Router) と Supabase を基盤とし、高度なリアルタイム同期と堅牢な自律型セキュリティ機能を提供する。
 
 ## システム概要
 
@@ -249,4 +249,4 @@ npm run dev
 ```
 
 ---
-© 2026 市川学園 & Junxiang Jin. All rights reserved.
+© 2026 なずな祭実行委員会 & Junxiang Jin. All rights reserved.
