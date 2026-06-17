@@ -35,11 +35,6 @@ export default async function AdminDashboard() {
                         システム全体の概要とマスター構成設定
                     </p>
                 </div>
-                <div className="flex gap-4">
-                    <div className="text-[10px] font-bold text-emerald-700 bg-emerald-50 py-1 px-3 rounded-full border border-emerald-200">
-                        システム正常稼働中
-                    </div>
-                </div>
             </header>
 
             <AdminTabsWrapper />
