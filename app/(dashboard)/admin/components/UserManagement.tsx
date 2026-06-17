@@ -198,7 +198,7 @@ export default function UserManagement() {
                     className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-xl flex items-center gap-1.5 text-xs font-bold transition-all shadow-md shadow-indigo-100/50 cursor-pointer"
                 >
                     <Plus className="w-4 h-4" />
-                    <span>新規ユーザー招待</span>
+                    <span>新規ユーザー追加</span>
                 </button>
             </div>
 
