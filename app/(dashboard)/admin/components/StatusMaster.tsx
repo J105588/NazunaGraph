@@ -7,6 +7,7 @@ import { StatusDefinition } from '@/types'
 import { useState } from 'react'
 import { Loader2, Plus, Trash2, Edit2, Save, X, Settings2 } from 'lucide-react'
 import toast from 'react-hot-toast'
+import ConfirmationModal from '@/components/ui/ConfirmationModal'
 
 async function fetchStatuses() {
     const supabase = createClient()
@@ -38,6 +39,7 @@ export default function StatusMaster() {
     const [editLabel, setEditLabel] = useState('')
     const [editColor, setEditColor] = useState('')
     const [editSortOrder, setEditSortOrder] = useState('')
+    const [deleteStatusId, setDeleteStatusId] = useState<number | null>(null)
 
     const handleCreate = async () => {
         if (!newLabel) return
@@ -85,8 +87,11 @@ export default function StatusMaster() {
         }
     }
 
-    const handleDelete = async (id: number) => {
-        if (!confirm('このステータスを削除しますか？使用中のアイテムがある場合、表示がおかしくなる可能性があります。')) return
+    const handleDelete = (id: number) => {
+        setDeleteStatusId(id)
+    }
+
+    const executeDelete = async (id: number) => {
         try {
             const { error } = await supabase.from('status_definitions').delete().eq('id', id)
             if (error) throw error
@@ -113,6 +118,15 @@ export default function StatusMaster() {
 
     return (
         <div className="bg-white border border-slate-200 p-6 md:p-8 rounded-3xl shadow-sm flex flex-col h-full">
+            <ConfirmationModal
+                isOpen={deleteStatusId !== null}
+                onClose={() => setDeleteStatusId(null)}
+                onConfirm={() => deleteStatusId !== null && executeDelete(deleteStatusId)}
+                title="ステータスを削除しますか？"
+                message="このステータスを削除します。使用中のアイテムがある場合、表示がおかしくなる可能性があります。よろしいですか？"
+                confirmText="削除する"
+                variant="danger"
+            />
             <div className="flex justify-between items-center mb-5 border-b border-slate-100 pb-3">
                 <h3 className="text-base font-bold text-slate-800 flex items-center gap-2">
                     <Settings2 className="w-4 h-4 text-indigo-600" />

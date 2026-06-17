@@ -10,6 +10,7 @@ import ProfileEditor from '@/app/components/ProfileEditor'
 import { resetUserPassword, createUser } from '@/app/actions/admin'
 import { Switch } from '@headlessui/react'
 import { useRealtimeSubscription } from '@/hooks/useRealtimeSubscription'
+import ConfirmationModal from '@/components/ui/ConfirmationModal'
 
 import { Category } from '@/types'
 
@@ -44,6 +45,9 @@ export default function UserManagement() {
         role: 'group',
         group_name: ''
     })
+    const [forceLogoutUser, setForceLogoutUser] = useState<{ id: string; email: string } | null>(null)
+    const [resettingUser, setResettingUser] = useState<{ id: string; email: string } | null>(null)
+    const [newPassword, setNewPassword] = useState('')
 
     const { data: users, isLoading, refetch } = useQuery({
         queryKey: ['admin-users'],
@@ -120,9 +124,11 @@ export default function UserManagement() {
         (user.group_name?.toLowerCase() || '').includes(search.toLowerCase())
     )
 
-    const handleForceLogout = async (userId: string) => {
-        if (!confirm('このユーザーを強制的にログアウトさせますか？\n(対象のユーザーは直ちにログアウトされ、ログインページにリダイレクトされます)')) return
+    const handleForceLogout = (userId: string, userEmail: string) => {
+        setForceLogoutUser({ id: userId, email: userEmail })
+    }
 
+    const executeForceLogout = async (userId: string) => {
         try {
             const { error } = await supabase
                 .from('profiles')
@@ -137,25 +143,8 @@ export default function UserManagement() {
         }
     }
 
-    const handlePasswordReset = async (userId: string, userEmail: string) => {
-        const newPassword = prompt(`パスワードをリセットします。\n対象: ${userEmail}\n\n新しいパスワードを入力してください (6文字以上):`)
-        if (newPassword === null) return // Cancelled
-        if (!newPassword || newPassword.length < 6) {
-            alert('パスワードは6文字以上で入力してください。')
-            return
-        }
-
-        const confirmReset = confirm(`以下の内容でパスワードを変更します。よろしいですか？\n\n対象: ${userEmail}\nパスワード: ${newPassword}`)
-        if (!confirmReset) return
-
-        try {
-            await resetUserPassword(userId, newPassword)
-            toast.success('パスワードをリセットしました')
-        } catch (err: unknown) {
-            console.error(err)
-            const errMsg = err instanceof Error ? err.message : 'エラーが発生しました'
-            toast.error(`リセットに失敗しました: ${errMsg}`)
-        }
+    const handlePasswordReset = (userId: string, userEmail: string) => {
+        setResettingUser({ id: userId, email: userEmail })
     }
 
     const handleEdit = (user: Profile) => {
@@ -318,7 +307,7 @@ export default function UserManagement() {
                                             <KeyRound className="w-3.5 h-3.5" />
                                         </button>
                                         <button
-                                            onClick={() => handleForceLogout(user.id)}
+                                            onClick={() => handleForceLogout(user.id, user.email || '')}
                                             className="p-1.5 hover:bg-slate-100 rounded-lg border border-slate-200 text-rose-500 hover:text-rose-600 transition-all cursor-pointer shadow-sm"
                                             title="強制ログアウト"
                                         >
@@ -423,7 +412,7 @@ export default function UserManagement() {
                                     <span>再設定</span>
                                 </button>
                                 <button
-                                    onClick={() => handleForceLogout(user.id)}
+                                    onClick={() => handleForceLogout(user.id, user.email || '')}
                                     className="py-1.5 px-3 bg-white hover:bg-rose-50 border border-slate-200 text-rose-500 rounded-xl cursor-pointer"
                                     title="強制ログアウト"
                                 >
@@ -543,6 +532,93 @@ export default function UserManagement() {
                     </div>
                 </div>
             )}
+
+            {/* Password Reset Modal */}
+            {resettingUser && (
+                <div className="fixed inset-0 bg-slate-900/65 backdrop-blur-sm z-[120] flex items-center justify-center p-4">
+                    <div className="bg-white w-full max-w-md p-6 rounded-3xl shadow-xl relative border border-slate-200">
+                        <button
+                            onClick={() => {
+                                setResettingUser(null)
+                                setNewPassword('')
+                            }}
+                            className="absolute top-4 right-4 p-1.5 text-slate-400 hover:text-slate-600 rounded-full hover:bg-slate-100 transition-colors cursor-pointer"
+                        >
+                            <X className="w-4 h-4" />
+                        </button>
+
+                        <h3 className="text-lg font-bold text-slate-800 mb-5 flex items-center gap-2 border-b border-slate-100 pb-3 font-mincho">
+                            <KeyRound className="w-4 h-4 text-indigo-600" />
+                            パスワードのリセット
+                        </h3>
+
+                        <div className="mb-4 bg-slate-50 p-3.5 rounded-2xl border border-slate-100 text-xs text-slate-600">
+                            <span className="font-bold">対象ユーザー:</span> <span className="font-mono text-slate-800">{resettingUser.email}</span>
+                        </div>
+
+                        <form onSubmit={async (e) => {
+                            e.preventDefault()
+                            if (newPassword.length < 6) {
+                                toast.error('パスワードは6文字以上で入力してください。')
+                                return
+                            }
+                            try {
+                                await resetUserPassword(resettingUser.id, newPassword)
+                                toast.success('パスワードをリセットしました')
+                                setResettingUser(null)
+                                setNewPassword('')
+                            } catch (err: unknown) {
+                                console.error(err)
+                                const errMsg = err instanceof Error ? err.message : 'エラーが発生しました'
+                                toast.error(`リセットに失敗しました: ${errMsg}`)
+                            }
+                        }} className="space-y-4">
+                            <div>
+                                <label className="block text-xs font-bold text-slate-500 mb-1">新しいパスワード</label>
+                                <input
+                                    type="password"
+                                    required
+                                    minLength={6}
+                                    value={newPassword}
+                                    onChange={e => setNewPassword(e.target.value)}
+                                    className="art-input w-full bg-white border border-slate-200"
+                                    placeholder="6文字以上の新しいパスワード"
+                                />
+                            </div>
+
+                            <div className="flex gap-3 justify-end pt-2 border-t border-slate-100 mt-4">
+                                <button
+                                    type="button"
+                                    onClick={() => {
+                                        setResettingUser(null)
+                                        setNewPassword('')
+                                    }}
+                                    className="px-5 py-2.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-xs font-bold cursor-pointer"
+                                >
+                                    キャンセル
+                                </button>
+                                <button
+                                    type="submit"
+                                    className="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs rounded-xl shadow-md transition-all active:scale-[0.98] cursor-pointer"
+                                >
+                                    パスワードを変更
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            )}
+
+            {/* Force Logout Confirmation Modal */}
+            <ConfirmationModal
+                isOpen={forceLogoutUser !== null}
+                onClose={() => setForceLogoutUser(null)}
+                onConfirm={() => forceLogoutUser !== null && executeForceLogout(forceLogoutUser.id)}
+                title="ユーザーを強制ログアウトさせますか？"
+                message={`対象: ${forceLogoutUser?.email || ''}\n\nこの操作により、対象のユーザーは直ちにログアウトされ、ログインページにリダイレクトされます。よろしいですか？`}
+                confirmText="強制ログアウトする"
+                variant="danger"
+            />
         </div>
     )
 }

@@ -8,6 +8,7 @@ import { Lock, Unlock, Search, Filter, Plus, PackageOpen, ChevronDown, Edit2, Tr
 import AdminItemFormModal from './AdminItemFormModal'
 import toast from 'react-hot-toast'
 import { useState, useMemo } from 'react'
+import ConfirmationModal from '@/components/ui/ConfirmationModal'
 
 async function fetchAllItems() {
     const supabase = createClient()
@@ -86,6 +87,7 @@ export default function AdminItemList() {
     const [isModalOpen, setIsModalOpen] = useState(false)
     const [editingItem, setEditingItem] = useState<ItemWithDetails | null>(null)
     const [selectedItemIds, setSelectedItemIds] = useState<string[]>([])
+    const [deleteItemId, setDeleteItemId] = useState<string | null>(null)
 
     const handleToggleSelectAll = () => {
         if (selectedItemIds.length === filteredItems.length) {
@@ -214,8 +216,11 @@ export default function AdminItemList() {
         setIsModalOpen(true)
     }
 
-    const handleDelete = async (itemId: string) => {
-        if (!confirm('本当にこの商品を削除しますか？')) return
+    const handleDelete = (itemId: string) => {
+        setDeleteItemId(itemId)
+    }
+
+    const executeDelete = async (itemId: string) => {
         try {
             const { error } = await supabase.from('items').delete().eq('id', itemId)
             if (error) throw error
@@ -241,6 +246,16 @@ export default function AdminItemList() {
 
     return (
         <div className="bg-white border border-slate-200 p-6 md:p-8 rounded-3xl shadow-sm">
+            <ConfirmationModal
+                isOpen={!!deleteItemId}
+                onClose={() => setDeleteItemId(null)}
+                onConfirm={() => deleteItemId && executeDelete(deleteItemId)}
+                title="商品を削除しますか？"
+                message="この商品は完全に削除され、復元することはできません。よろしいですか？"
+                confirmText="削除する"
+                variant="danger"
+            />
+
             <AdminItemFormModal
                 isOpen={isModalOpen}
                 onClose={() => {

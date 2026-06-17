@@ -7,6 +7,7 @@ import { Category } from '@/types'
 import { useState } from 'react'
 import { Loader2, Plus, Trash2, Edit2, Save, X, FolderKanban } from 'lucide-react'
 import toast from 'react-hot-toast'
+import ConfirmationModal from '@/components/ui/ConfirmationModal'
 
 async function fetchCategories() {
     const supabase = createClient()
@@ -35,6 +36,7 @@ export default function CategoryMaster() {
     const [editingId, setEditingId] = useState<number | null>(null)
     const [editName, setEditName] = useState('')
     const [editSortOrder, setEditSortOrder] = useState('')
+    const [deleteCategoryId, setDeleteCategoryId] = useState<number | null>(null)
 
     const handleCreate = async () => {
         if (!newCategoryName) return
@@ -75,8 +77,11 @@ export default function CategoryMaster() {
         }
     }
 
-    const handleDelete = async (id: number) => {
-        if (!confirm('このカテゴリを削除しますか？紐づいているアイテムがある場合、エラーになる可能性があります。')) return
+    const handleDelete = (id: number) => {
+        setDeleteCategoryId(id)
+    }
+
+    const executeDelete = async (id: number) => {
         try {
             const { error } = await supabase.from('categories').delete().eq('id', id)
             if (error) throw error
@@ -98,6 +103,15 @@ export default function CategoryMaster() {
 
     return (
         <div className="bg-white border border-slate-200 p-6 md:p-8 rounded-3xl shadow-sm flex flex-col h-full">
+            <ConfirmationModal
+                isOpen={deleteCategoryId !== null}
+                onClose={() => setDeleteCategoryId(null)}
+                onConfirm={() => deleteCategoryId !== null && executeDelete(deleteCategoryId)}
+                title="カテゴリを削除しますか？"
+                message="このカテゴリを削除します。紐づいているアイテムがある場合、エラーになるか、表示がおかしくなる可能性があります。よろしいですか？"
+                confirmText="削除する"
+                variant="danger"
+            />
             <div className="flex justify-between items-center mb-5 border-b border-slate-100 pb-3">
                 <h3 className="text-base font-bold text-slate-800 flex items-center gap-2">
                     <FolderKanban className="w-4 h-4 text-indigo-600" />

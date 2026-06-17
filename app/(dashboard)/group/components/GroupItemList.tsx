@@ -8,6 +8,7 @@ import { useState } from 'react'
 import { Loader2, Lock, Plus, Edit2, Trash2, Camera, PackageOpen } from 'lucide-react'
 import toast from 'react-hot-toast'
 import ItemFormModal from './ItemFormModal'
+import ConfirmationModal from '@/components/ui/ConfirmationModal'
 
 async function fetchGroupItems(userId: string) {
     const supabase = createClient()
@@ -50,6 +51,7 @@ export default function GroupItemList({ userId }: { userId: string }) {
     // State for Modal
     const [isModalOpen, setIsModalOpen] = useState(false)
     const [editingItem, setEditingItem] = useState<ItemWithDetails | null>(null)
+    const [deleteItemId, setDeleteItemId] = useState<string | null>(null)
 
     // Realtime subscriptions
     useRealtimeSubscription('items', ['group-items', userId])
@@ -116,8 +118,11 @@ export default function GroupItemList({ userId }: { userId: string }) {
         }
     }
 
-    const handleDelete = async (itemId: string) => {
-        if (!confirm('本当に削除しますか？')) return
+    const handleDelete = (itemId: string) => {
+        setDeleteItemId(itemId)
+    }
+
+    const executeDelete = async (itemId: string) => {
         try {
             const { error } = await supabase.from('items').delete().eq('id', itemId)
             if (error) throw error
@@ -174,6 +179,16 @@ export default function GroupItemList({ userId }: { userId: string }) {
 
     return (
         <div className="space-y-6">
+
+            <ConfirmationModal
+                isOpen={!!deleteItemId}
+                onClose={() => setDeleteItemId(null)}
+                onConfirm={() => deleteItemId && executeDelete(deleteItemId)}
+                title="商品を削除しますか？"
+                message="この商品は完全に削除され、復元することはできません。よろしいですか？"
+                confirmText="削除する"
+                variant="danger"
+            />
 
             {isRegistrationDisabled && (
                 <div className="bg-rose-50 border border-rose-200 text-rose-700 px-5 py-4 rounded-2xl text-xs font-bold flex items-center gap-2.5 shadow-sm animate-fade-in">
