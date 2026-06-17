@@ -19,32 +19,20 @@ export default function ItemFormModal({ isOpen, onClose, onSuccess, initialItem,
     const supabase = createClient()
     const [name, setName] = useState('')
     const [description, setDescription] = useState('')
-    const [categoryId, setCategoryId] = useState<number | ''>('')
     const [imageFile, setImageFile] = useState<File | null>(null)
     const [imagePreview, setImagePreview] = useState<string | null>(null)
-    const [categories, setCategories] = useState<Category[]>([])
     const [loading, setLoading] = useState(false)
     const [uploading, setUploading] = useState(false)
-
-    useEffect(() => {
-        const fetchCategories = async () => {
-            const { data } = await supabase.from('categories').select('*').order('sort_order')
-            if (data) setCategories(data)
-        }
-        fetchCategories()
-    }, [supabase])
 
     useEffect(() => {
         if (initialItem) {
             setName(initialItem.name)
             setDescription(initialItem.description || '')
-            setCategoryId(initialItem.category_id || '')
             setImagePreview(initialItem.image_url)
         } else {
             // Reset form for new item
             setName('')
             setDescription('')
-            setCategoryId('')
             setImageFile(null)
             setImagePreview(null)
         }
@@ -105,7 +93,6 @@ export default function ItemFormModal({ isOpen, onClose, onSuccess, initialItem,
             const itemData = {
                 name,
                 description,
-                category_id: categoryId === '' ? null : Number(categoryId),
                 image_url: imageUrl,
                 owner_id: userId,
                 ...(initialItem ? {} : { status_id: 1 })
@@ -201,20 +188,7 @@ export default function ItemFormModal({ isOpen, onClose, onSuccess, initialItem,
                                 />
                             </div>
 
-                            {/* Category */}
-                            <div className="space-y-1.5">
-                                <label className="block text-xs font-bold text-slate-500">カテゴリ</label>
-                                <select
-                                    value={categoryId}
-                                    onChange={(e) => setCategoryId(e.target.value === '' ? '' : Number(e.target.value))}
-                                    className="art-input w-full bg-white border border-slate-200 text-slate-800"
-                                >
-                                    <option value="">カテゴリを選択してください</option>
-                                    {categories.map((c) => (
-                                        <option key={c.id} value={c.id}>{c.name}</option>
-                                    ))}
-                                </select>
-                            </div>
+
 
                             {/* Description */}
                             <div className="space-y-1.5">

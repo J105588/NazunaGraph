@@ -28,6 +28,7 @@ export default function ProfileEditor({
     const [description, setDescription] = useState(profile.description || '')
     const [imagePreview, setImagePreview] = useState<string | null>(profile.image_url)
     const [imageFile, setImageFile] = useState<File | null>(null)
+    const [isVisible, setIsVisible] = useState(profile.is_visible !== false)
     const [loading, setLoading] = useState(false)
     const [uploading, setUploading] = useState(false)
 
@@ -104,7 +105,8 @@ export default function ProfileEditor({
                     description: description,
                     image_url: finalImageUrl,
                     role: role,
-                    category_id: categoryId
+                    category_id: categoryId,
+                    is_visible: isVisible
                 })
                 toast.success('ユーザー情報およびプロフィールを更新しました')
             } else {
@@ -115,7 +117,8 @@ export default function ProfileEditor({
                         display_name: displayName,
                         group_name: groupName,
                         description: description,
-                        image_url: finalImageUrl
+                        image_url: finalImageUrl,
+                        is_visible: isVisible
                     })
                     .eq('id', profile.id)
 
@@ -149,8 +152,8 @@ export default function ProfileEditor({
                                 disabled={profile.id === currentUserId}
                                 className="art-input w-full bg-white border border-slate-200 text-slate-800 text-xs py-2 px-3 disabled:bg-slate-100 disabled:text-slate-400 disabled:cursor-not-allowed"
                             >
-                                <option value="group">Group (団体管理者/自社編集のみ)</option>
-                                <option value="admin">Admin (システム管理者/全権限)</option>
+                                <option value="group">Group (各団体)</option>
+                                <option value="admin">Admin (システム管理者)</option>
                             </select>
                             {profile.id === currentUserId && (
                                 <p className="text-[9px] text-amber-600 font-bold mt-1">
@@ -247,6 +250,23 @@ export default function ProfileEditor({
                     placeholder="来場者にアピールしたい内容を入力してください（メニューの説明や待ち時間など）"
                     className="art-input w-full bg-slate-50/50 focus:bg-white border border-slate-200 focus:border-indigo-500 resize-none rounded-xl transition-all disabled:bg-slate-100/80 disabled:text-slate-400 disabled:border-slate-200 disabled:cursor-not-allowed text-slate-800"
                 />
+            </div>
+
+            <div className="space-y-1.5">
+                <label className="block text-xs font-bold text-slate-500">公開設定</label>
+                <div className="flex items-center gap-2 bg-slate-50 border border-slate-200 rounded-2xl p-4">
+                    <input
+                        type="checkbox"
+                        id="is_visible"
+                        checked={isVisible}
+                        disabled={!isEditable}
+                        onChange={(e) => setIsVisible(e.target.checked)}
+                        className="w-4 h-4 text-indigo-600 border-slate-300 rounded focus:ring-indigo-500 cursor-pointer disabled:cursor-not-allowed"
+                    />
+                    <label htmlFor="is_visible" className="text-xs font-bold text-slate-600 cursor-pointer select-none disabled:cursor-not-allowed">
+                        一般公開ページに掲載する（チェックを外すと、店舗一覧および詳細ページが非公開になります）
+                    </label>
+                </div>
             </div>
 
             {isEditable ? (

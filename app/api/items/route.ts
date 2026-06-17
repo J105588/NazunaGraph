@@ -36,7 +36,6 @@ export async function GET(request: NextRequest) {
                 description,
                 image_url,
                 updated_at,
-                category_id,
                 status_id,
                 owner_id,
                 status:status_definitions(
@@ -44,19 +43,20 @@ export async function GET(request: NextRequest) {
                     label,
                     color
                 ),
-                category:categories(
-                    id,
-                    name
-                ),
-                owner:profiles(
+                owner:profiles!inner(
                     id,
                     group_name,
                     display_name,
                     description,
-                    image_url
+                    image_url,
+                    category_id,
+                    category:categories(
+                        id,
+                        name
+                    )
                 )
             `)
-            .order('category_id', { ascending: true })
+            .order('category_id', { foreignTable: 'owner', ascending: true })
             .order('name', { ascending: true })
 
         if (ownerId) {
@@ -66,7 +66,7 @@ export async function GET(request: NextRequest) {
         if (categoryId) {
             const parsed = parseInt(categoryId, 10)
             if (!isNaN(parsed)) {
-                query = query.eq('category_id', parsed)
+                query = query.eq('owner.category_id', parsed)
             }
         }
 
@@ -94,7 +94,27 @@ export async function GET(request: NextRequest) {
             )
         }
 
-        return NextResponse.json(data, {
+        const transformed = (data || []).map((item: any) => ({
+            id: item.id,
+            name: item.name,
+            description: item.description,
+            image_url: item.image_url,
+            updated_at: item.updated_at,
+            status_id: item.status_id,
+            owner_id: item.owner_id,
+            status: item.status,
+            category: item.owner?.category || null,
+            category_id: item.owner?.category_id || null,
+            owner: {
+                id: item.owner?.id,
+                group_name: item.owner?.group_name,
+                display_name: item.owner?.display_name,
+                description: item.owner?.description,
+                image_url: item.owner?.image_url
+            }
+        }))
+
+        return NextResponse.json(transformed, {
             headers: {
                 ...corsHeaders,
                 'Cache-Control': 'public, s-maxage=5, stale-while-revalidate=10'

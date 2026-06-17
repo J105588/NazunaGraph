@@ -3,7 +3,7 @@ import GuestList from '../../components/GuestList'
 import LuxuriousBackground from '../../components/LuxuriousBackground'
 import { ItemWithDetails } from '@/types'
 import Link from 'next/link'
-import { ArrowLeft, Store, Tag } from 'lucide-react'
+import { ArrowLeft, Store, Tag, Lock } from 'lucide-react'
 
 export const dynamic = 'force-dynamic'
 
@@ -20,7 +20,6 @@ export default async function ShopPage({ params }: { params: Promise<{ id: strin
             description,
             image_url,
             owner_id,
-            category_id,
             status_id,
             is_admin_locked,
             updated_at,
@@ -29,20 +28,20 @@ export default async function ShopPage({ params }: { params: Promise<{ id: strin
                 label,
                 color
             ),
-            category:categories(
-                id,
-                name
-            ),
             owner:profiles(
                 id,
                 group_name,
                 display_name,
                 description,
-                image_url
+                image_url,
+                category_id,
+                category:categories(
+                    id,
+                    name
+                )
             )
         `)
         .eq('owner_id', id)
-        .order('category_id', { ascending: true })
         .order('name', { ascending: true })
 
     const { data: profileData } = await supabase
@@ -53,6 +52,7 @@ export default async function ShopPage({ params }: { params: Promise<{ id: strin
             display_name,
             description,
             image_url,
+            is_visible,
             category:categories(
                 id,
                 name,
@@ -64,7 +64,32 @@ export default async function ShopPage({ params }: { params: Promise<{ id: strin
 
     const profile = profileData as any
 
-    const shopItems = (items || []) as unknown as ItemWithDetails[]
+    if (!profile || profile.is_visible === false) {
+        return (
+            <main className="min-h-screen p-4 md:p-12 relative overflow-hidden bg-slate-50/50 flex flex-col items-center justify-center">
+                <div className="bg-white/80 backdrop-blur-md rounded-3xl border border-slate-200 p-8 max-w-md w-full text-center shadow-md">
+                    <Lock className="w-10 h-10 text-rose-500 mx-auto mb-3" />
+                    <h1 className="text-xl font-bold text-slate-800">非公開のページです</h1>
+                    <p className="text-slate-500 text-xs mt-2 leading-relaxed">
+                        この団体は現在準備中のため非公開に設定されています。<br />
+                        公開されるまでしばらくお待ちください。
+                    </p>
+                    <Link
+                        href="/"
+                        className="inline-flex items-center gap-2 mt-6 px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs shadow-md shadow-indigo-100 transition-all cursor-pointer"
+                    >
+                        一覧に戻る
+                    </Link>
+                </div>
+            </main>
+        )
+    }
+
+    const shopItems = ((items || []) as any[]).map((item) => ({
+        ...item,
+        category: item.owner?.category || null,
+        category_id: item.owner?.category_id || null
+    })) as unknown as ItemWithDetails[]
     const shopName = profile?.display_name || profile?.group_name || '店舗'
 
     return (

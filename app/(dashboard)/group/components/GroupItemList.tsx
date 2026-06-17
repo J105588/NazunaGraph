@@ -5,7 +5,7 @@ import { createClient } from '@/utils/supabase/client'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { ItemWithDetails, StatusDefinition } from '@/types'
 import { useState } from 'react'
-import { Loader2, Lock, Plus, Edit2, Trash2 } from 'lucide-react'
+import { Loader2, Lock, Plus, Edit2, Trash2, Camera, PackageOpen } from 'lucide-react'
 import toast from 'react-hot-toast'
 import ItemFormModal from './ItemFormModal'
 
@@ -16,14 +16,20 @@ async function fetchGroupItems(userId: string) {
         .select(`
             *,
             status:status_definitions(*),
-            category:categories(*),
-            owner:profiles(*)
+            owner:profiles(
+                *,
+                category:categories(*)
+            )
         `)
         .eq('owner_id', userId)
         .order('name', { ascending: true })
 
     if (error) throw error
-    return data as ItemWithDetails[]
+    return (data || []).map((item: any) => ({
+        ...item,
+        category: item.owner?.category || null,
+        category_id: item.owner?.category_id || null
+    })) as ItemWithDetails[]
 }
 
 async function fetchStatuses() {
@@ -207,7 +213,7 @@ export default function GroupItemList({ userId }: { userId: string }) {
 
             {items?.length === 0 && (
                 <div className="text-center text-slate-400 py-16 bg-white rounded-3xl border-2 border-slate-200 border-dashed max-w-xl mx-auto p-6">
-                    <span className="text-3xl block mb-2">📦</span>
+                    <PackageOpen className="w-8 h-8 text-indigo-500/80 mx-auto mb-2" />
                     <p className="font-bold text-slate-600">アイテムが登録されていません</p>
                     <p className="text-xs text-slate-400 mt-1 max-w-xs mx-auto">
                         右上の「新規追加」ボタンから、最初の商品を登録してください。
@@ -231,7 +237,9 @@ export default function GroupItemList({ userId }: { userId: string }) {
                                     // eslint-disable-next-line @next/next/no-img-element
                                     <img src={item.image_url} alt={item.name} className="w-full h-full object-cover" />
                                 ) : (
-                                    <div className="w-full h-full flex items-center justify-center text-xl text-slate-300 bg-slate-50 font-bold">📷</div>
+                                    <div className="w-full h-full flex items-center justify-center bg-slate-50">
+                                        <Camera className="w-6 h-6 text-slate-300" />
+                                    </div>
                                 )}
                             </div>
 
@@ -261,11 +269,9 @@ export default function GroupItemList({ userId }: { userId: string }) {
                                         <button
                                             key={status.id}
                                             onClick={() => updateStatus(item.id, status.id)}
-                                            disabled={item.is_admin_locked}
                                             className={`
                                                 px-3.5 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer border border-transparent flex-1 sm:flex-none text-center
                                                 ${getStatusButtonClass(isActive, status.color)}
-                                                ${item.is_admin_locked ? 'opacity-40 cursor-not-allowed shadow-none scale-100' : ''}
                                             `}
                                         >
                                             <span>{status.label}</span>

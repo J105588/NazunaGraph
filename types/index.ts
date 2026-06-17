@@ -7,6 +7,7 @@ export type Profile = {
     description: string | null // Exhibition Description
     image_url: string | null // Exhibition Hero Image
     category_id: number | null // Assigned by Admin
+    is_visible: boolean // Display/Hide toggle
     created_at: string
 }
 

@@ -5,7 +5,7 @@ import { createClient } from '@/utils/supabase/client'
 import { useQuery } from '@tanstack/react-query'
 import { ItemWithDetails } from '@/types'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Search, X, Filter } from 'lucide-react'
+import { Search, X, Filter, Utensils } from 'lucide-react'
 import { useState } from 'react'
 import Image from 'next/image'
 
@@ -19,7 +19,6 @@ async function fetchItems(ownerId?: string) {
             description,
             image_url,
             owner_id,
-            category_id,
             status_id,
             is_admin_locked,
             updated_at,
@@ -28,19 +27,19 @@ async function fetchItems(ownerId?: string) {
                 label,
                 color
             ),
-            category:categories(
-                id,
-                name
-            ),
             owner:profiles(
                 id,
                 group_name,
                 display_name,
                 description,
-                image_url
+                image_url,
+                category_id,
+                category:categories(
+                    id,
+                    name
+                )
             )
         `)
-        .order('category_id', { ascending: true })
         .order('name', { ascending: true })
 
     if (ownerId) {
@@ -50,7 +49,11 @@ async function fetchItems(ownerId?: string) {
     const { data, error } = await query
 
     if (error) throw error
-    return data as unknown as ItemWithDetails[]
+    return (data || []).map((item: any) => ({
+        ...item,
+        category: item.owner?.category || null,
+        category_id: item.owner?.category_id || null
+    })) as unknown as ItemWithDetails[]
 }
 
 export default function GuestList({ initialItems, ownerId }: { initialItems: ItemWithDetails[], ownerId?: string }) {
@@ -265,7 +268,7 @@ export default function GuestList({ initialItems, ownerId }: { initialItems: Ite
                 </div>
             ) : (
                 <div className="flex flex-col items-center justify-center py-20 text-center bg-white rounded-2xl border border-slate-100 shadow-sm">
-                    <span className="text-3xl mb-2">🍽️</span>
+                    <Utensils className="w-8 h-8 text-slate-300 mb-2" />
                     <p className="text-slate-600 font-semibold">現在、表示できる商品はありません</p>
                     <p className="text-slate-400 text-xs mt-1">検索語句やフィルターをリセットしてください。</p>
                 </div>

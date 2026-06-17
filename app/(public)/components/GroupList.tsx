@@ -6,7 +6,7 @@ import { useQuery } from '@tanstack/react-query'
 import { motion, AnimatePresence } from 'framer-motion'
 import Link from 'next/link'
 import Image from 'next/image'
-import { ArrowRight, Loader2, Search, Filter, X } from 'lucide-react'
+import { ArrowRight, Loader2, Search, Filter, X, School } from 'lucide-react'
 import { useState } from 'react'
 
 export type GroupProfile = {
@@ -14,6 +14,7 @@ export type GroupProfile = {
     display_name: string | null
     group_name: string | null
     image_url: string | null
+    is_visible?: boolean
     items: {
         status: {
             color: string
@@ -36,6 +37,7 @@ async function fetchGroups() {
             display_name,
             group_name,
             image_url,
+            is_visible,
             category:categories (
                 id,
                 name,
@@ -60,7 +62,7 @@ export default function GroupList({ initialGroups }: { initialGroups?: GroupProf
     const [statusFilter, setStatusFilter] = useState<'all' | 'selling' | 'few' | 'soldout'>('all')
 
     // Real-time subscriptions for group profile and item changes
-    useRealtimeSubscription('profiles', ['groups'])
+    useRealtimeSubscription('profiles_data', ['groups'])
     useRealtimeSubscription('items', ['groups'])
 
     const { data: groups, isLoading, error } = useQuery({
@@ -145,6 +147,8 @@ export default function GroupList({ initialGroups }: { initialGroups?: GroupProf
 
     // Apply Filters (Search and Status)
     const filteredGroups = groups.filter(group => {
+        if (group.is_visible === false) return false
+
         const displayName = (group.display_name || '').toLowerCase()
         const groupName = (group.group_name || '').toLowerCase()
         const query = searchQuery.toLowerCase()
@@ -298,8 +302,8 @@ export default function GroupList({ initialGroups }: { initialGroups?: GroupProf
                                                             sizes="(max-width: 768px) 50vw, (max-width: 1200px) 33vw, 25vw"
                                                         />
                                                     ) : (
-                                                        <div className="w-full h-full flex items-center justify-center text-slate-300 bg-slate-50">
-                                                            <span className="text-4xl">🏫</span>
+                                                        <div className="w-full h-full flex items-center justify-center bg-slate-50">
+                                                            <School className="w-10 h-10 text-slate-300" />
                                                         </div>
                                                     )}
 
@@ -377,7 +381,7 @@ export default function GroupList({ initialGroups }: { initialGroups?: GroupProf
                             animate={{ opacity: 1 }}
                             className="flex flex-col items-center justify-center py-20 text-center bg-white rounded-2xl border border-slate-100 shadow-sm max-w-lg mx-auto"
                         >
-                            <span className="text-4xl mb-3">🔍</span>
+                            <Search className="w-10 h-10 text-slate-300 mb-3" />
                             <p className="text-slate-600 font-semibold">該当する団体が見つかりませんでした</p>
                             <p className="text-slate-400 text-xs mt-1">検索キーワードや絞り込み条件を変えてみてください。</p>
                         </motion.div>

@@ -58,7 +58,7 @@ export default function UserManagement() {
     // Subscribe to system_settings changes
     useRealtimeSubscription('system_settings', ['disabled-registration-users'])
     // Subscribe to profiles changes
-    useRealtimeSubscription('profiles', ['admin-users'])
+    useRealtimeSubscription('profiles_data', ['admin-users'])
 
     const { data: disabledUsers, refetch: refetchDisabledUsers } = useQuery({
         queryKey: ['disabled-registration-users'],
@@ -92,6 +92,22 @@ export default function UserManagement() {
             if (error) throw error
             toast.success(currentlyAllowed ? 'アイテム登録を「不可」に設定しました' : 'アイテム登録を「許可」に設定しました')
             refetchDisabledUsers()
+        } catch (err) {
+            console.error(err)
+            toast.error('設定の変更に失敗しました')
+        }
+    }
+
+    const handleToggleVisibility = async (targetUserId: string, currentlyVisible: boolean) => {
+        try {
+            const { error } = await supabase
+                .from('profiles')
+                .update({ is_visible: !currentlyVisible })
+                .eq('id', targetUserId)
+
+            if (error) throw error
+            toast.success(!currentlyVisible ? '公開に設定しました' : '非公開に設定しました')
+            refetch()
         } catch (err) {
             console.error(err)
             toast.error('設定の変更に失敗しました')
@@ -219,6 +235,7 @@ export default function UserManagement() {
                             <th className="p-3">所属カテゴリ</th>
                             <th className="p-3">表示名</th>
                             <th className="p-3">クラス・団体名</th>
+                            <th className="p-3">公開状態</th>
                             <th className="p-3">アイテム登録許可</th>
                             <th className="p-3 text-right">アクション</th>
                         </tr>
@@ -228,17 +245,39 @@ export default function UserManagement() {
                             <tr key={user.id} className="border-b border-slate-100 hover:bg-slate-50/50 transition-colors">
                                 <td className="p-3 font-mono text-slate-700 font-medium">{user.email}</td>
                                 <td className="p-3">
-                                    <span className={`px-2.5 py-1 rounded-lg text-[10px] font-bold border ${
-                                        user.role === 'admin' ? 'bg-indigo-50 border-indigo-200 text-indigo-700' :
+                                    <span className={`px-2.5 py-1 rounded-lg text-[10px] font-bold border ${user.role === 'admin' ? 'bg-indigo-50 border-indigo-200 text-indigo-700' :
                                         user.role === 'group' ? 'bg-sky-50 border-sky-200 text-sky-700' :
-                                        'bg-slate-50 border-slate-200 text-slate-500'
-                                    }`}>
+                                            'bg-slate-50 border-slate-200 text-slate-500'
+                                        }`}>
                                         {user.role.toUpperCase()}
                                     </span>
                                 </td>
                                 <td className="p-3 text-slate-500 font-bold">{user.category?.name || '-'}</td>
                                 <td className="p-3 text-slate-700 font-semibold">{user.display_name || '-'}</td>
                                 <td className="p-3 text-slate-500 font-bold">{user.group_name || '-'}</td>
+                                <td className="p-3">
+                                    {user.role === 'group' ? (
+                                        <div className="flex items-center gap-2">
+                                            <Switch
+                                                checked={user.is_visible !== false}
+                                                onChange={() => handleToggleVisibility(user.id, user.is_visible !== false)}
+                                                className={`${user.is_visible !== false ? 'bg-indigo-600' : 'bg-slate-200'
+                                                    } relative inline-flex h-[20px] w-[36px] shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500`}
+                                            >
+                                                <span
+                                                    aria-hidden="true"
+                                                    className={`${user.is_visible !== false ? 'translate-x-4' : 'translate-x-0'}
+                                                        pointer-events-none inline-block h-[16px] w-[16px] transform rounded-full bg-white shadow-lg ring-0 transition duration-200 ease-in-out`}
+                                                />
+                                            </Switch>
+                                            <span className={`text-[10px] font-bold ${user.is_visible !== false ? 'text-indigo-600' : 'text-slate-400'}`}>
+                                                {user.is_visible !== false ? '公開' : '非公開'}
+                                            </span>
+                                        </div>
+                                    ) : (
+                                        <span className="text-slate-300">-</span>
+                                    )}
+                                </td>
                                 <td className="p-3">
                                     {user.role === 'group' ? (
                                         <div className="flex items-center gap-2">
@@ -301,16 +340,15 @@ export default function UserManagement() {
                                     <div className="text-slate-800 font-mono text-xs font-bold truncate">{user.email}</div>
                                     <div className="text-[10px] text-slate-400 font-semibold mt-0.5">{user.display_name || '名前未設定'}</div>
                                 </div>
-                                <span className={`px-2 py-0.5 rounded text-[10px] font-bold border whitespace-nowrap ml-2 ${
-                                    user.role === 'admin' ? 'bg-indigo-50 border-indigo-200 text-indigo-700' :
+                                <span className={`px-2 py-0.5 rounded text-[10px] font-bold border whitespace-nowrap ml-2 ${user.role === 'admin' ? 'bg-indigo-50 border-indigo-200 text-indigo-700' :
                                     user.role === 'group' ? 'bg-sky-50 border-sky-200 text-sky-700' :
-                                    'bg-slate-150 border-slate-300 text-slate-600'
-                                }`}>
+                                        'bg-slate-150 border-slate-300 text-slate-600'
+                                    }`}>
                                     {user.role}
                                 </span>
                             </div>
 
-                            <div className="grid grid-cols-3 gap-2 text-[10px] text-slate-500 font-bold mb-3 mt-2">
+                            <div className="grid grid-cols-2 gap-2 text-[10px] text-slate-500 font-bold mb-3 mt-2">
                                 <div className="bg-white p-2 rounded-xl border border-slate-200/60">
                                     <span className="block text-[8px] text-slate-400">団体名</span>
                                     <span className="truncate block">{user.group_name || '-'}</span>
@@ -318,6 +356,30 @@ export default function UserManagement() {
                                 <div className="bg-white p-2 rounded-xl border border-slate-200/60">
                                     <span className="block text-[8px] text-slate-400">カテゴリ</span>
                                     <span className="truncate block">{user.category?.name || '-'}</span>
+                                </div>
+                                <div className="bg-white p-2 rounded-xl border border-slate-200/60 flex flex-col justify-between">
+                                    <span className="block text-[8px] text-slate-400">公開状態</span>
+                                    {user.role === 'group' ? (
+                                        <div className="flex items-center gap-1.5 mt-0.5">
+                                            <Switch
+                                                checked={user.is_visible !== false}
+                                                onChange={() => handleToggleVisibility(user.id, user.is_visible !== false)}
+                                                className={`${user.is_visible !== false ? 'bg-indigo-600' : 'bg-slate-200'
+                                                    } relative inline-flex h-[16px] w-[28px] shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500`}
+                                            >
+                                                <span
+                                                    aria-hidden="true"
+                                                    className={`${user.is_visible !== false ? 'translate-x-3' : 'translate-x-0'}
+                                                        pointer-events-none inline-block h-[12px] w-[12px] transform rounded-full bg-white shadow-lg ring-0 transition duration-200 ease-in-out`}
+                                                />
+                                            </Switch>
+                                            <span className={`text-[9px] font-bold ${user.is_visible !== false ? 'text-indigo-600' : 'text-slate-400'}`}>
+                                                {user.is_visible !== false ? '公開' : '非公開'}
+                                            </span>
+                                        </div>
+                                    ) : (
+                                        <span className="text-slate-300 font-normal">-</span>
+                                    )}
                                 </div>
                                 <div className="bg-white p-2 rounded-xl border border-slate-200/60 flex flex-col justify-between">
                                     <span className="block text-[8px] text-slate-400">アイテム登録</span>
@@ -452,8 +514,8 @@ export default function UserManagement() {
                                     onChange={e => setCreateFormData({ ...createFormData, role: e.target.value })}
                                     className="art-input w-full bg-white border border-slate-200 text-slate-800"
                                 >
-                                    <option value="group">Group (団体代表/自社アイテム管理)</option>
-                                    <option value="admin">Admin (システム全体管理者)</option>
+                                    <option value="group">Group (各団体)</option>
+                                    <option value="admin">Admin (システム管理者)</option>
                                 </select>
                             </div>
 
@@ -466,7 +528,7 @@ export default function UserManagement() {
                                         value={createFormData.group_name}
                                         onChange={e => setCreateFormData({ ...createFormData, group_name: e.target.value })}
                                         className="art-input w-full bg-white border border-slate-200"
-                                        placeholder="例: 3年A組"
+                                        placeholder="例: 4年4組"
                                     />
                                 </div>
                             )}

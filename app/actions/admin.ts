@@ -110,6 +110,7 @@ export async function adminUpdateUserProfile(
         group_name?: string
         description?: string | null
         image_url?: string | null
+        is_visible?: boolean
     }
 ) {
     // 1. Verify Requesting User is Admin
@@ -165,6 +166,7 @@ export async function adminUpdateUserProfile(
             ...(updates.group_name !== undefined && { group_name: updates.group_name }),
             ...(updates.description !== undefined && { description: updates.description }),
             ...(updates.image_url !== undefined && { image_url: updates.image_url }),
+            ...(updates.is_visible !== undefined && { is_visible: updates.is_visible }),
         })
         .eq('id', userId)
 

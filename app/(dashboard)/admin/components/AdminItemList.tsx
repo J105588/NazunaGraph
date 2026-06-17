@@ -4,7 +4,7 @@ import { useRealtimeSubscription } from '@/hooks/useRealtimeSubscription'
 import { createClient } from '@/utils/supabase/client'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { Category, ItemWithDetails, StatusDefinition } from '@/types'
-import { Lock, Unlock, Search, Filter, Plus, PackageOpen, ChevronDown } from 'lucide-react'
+import { Lock, Unlock, Search, Filter, Plus, PackageOpen, ChevronDown, Edit2, Trash2, Camera } from 'lucide-react'
 import AdminItemFormModal from './AdminItemFormModal'
 import toast from 'react-hot-toast'
 import { useState, useMemo } from 'react'
@@ -16,13 +16,19 @@ async function fetchAllItems() {
         .select(`
             *,
             status:status_definitions(*),
-            category:categories(*),
-            owner:profiles(*)
+            owner:profiles(
+                *,
+                category:categories(*)
+            )
         `)
         .order('updated_at', { ascending: false })
 
     if (error) throw error
-    return data as ItemWithDetails[]
+    return (data || []).map((item: any) => ({
+        ...item,
+        category: item.owner?.category || null,
+        category_id: item.owner?.category_id || null
+    })) as ItemWithDetails[]
 }
 
 async function fetchCategories() {
@@ -78,15 +84,93 @@ export default function AdminItemList() {
     const [searchQuery, setSearchQuery] = useState('')
     const [selectedCategory, setSelectedCategory] = useState<number | 'all'>('all')
     const [isModalOpen, setIsModalOpen] = useState(false)
+    const [editingItem, setEditingItem] = useState<ItemWithDetails | null>(null)
+    const [selectedItemIds, setSelectedItemIds] = useState<string[]>([])
+
+    const handleToggleSelectAll = () => {
+        if (selectedItemIds.length === filteredItems.length) {
+            setSelectedItemIds([])
+        } else {
+            setSelectedItemIds(filteredItems.map(item => item.id))
+        }
+    }
+
+    const handleToggleSelect = (id: string) => {
+        setSelectedItemIds(prev =>
+            prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]
+        )
+    }
+
+    const handleBulkLock = async (lock: boolean) => {
+        if (selectedItemIds.length === 0) return
+
+        const queryKey = ['admin-items']
+        await queryClient.cancelQueries({ queryKey })
+        const previousItems = queryClient.getQueryData<ItemWithDetails[]>(queryKey)
+
+        if (previousItems) {
+            queryClient.setQueryData<ItemWithDetails[]>(queryKey, (old) => {
+                if (!old) return []
+                return old.map(item =>
+                    selectedItemIds.includes(item.id)
+                        ? { ...item, is_admin_locked: lock }
+                        : item
+                )
+            })
+        }
+
+        try {
+            const { error } = await supabase
+                .from('items')
+                .update({ is_admin_locked: lock })
+                .in('id', selectedItemIds)
+
+            if (error) throw error
+            toast.success(lock ? '選択した商品の編集権限をロックしました' : '選択した商品のロックを解除しました')
+            setSelectedItemIds([])
+            queryClient.invalidateQueries({ queryKey })
+        } catch (err) {
+            console.error(err)
+            toast.error('一括操作に失敗しました')
+            if (previousItems) {
+                queryClient.setQueryData(queryKey, previousItems)
+            }
+        }
+    }
 
     const toggleLock = async (id: string, currentLock: boolean) => {
-        const { error } = await supabase
-            .from('items')
-            .update({ is_admin_locked: !currentLock })
-            .eq('id', id)
+        // Optimistic Update
+        const queryKey = ['admin-items']
+        await queryClient.cancelQueries({ queryKey })
+        const previousItems = queryClient.getQueryData<ItemWithDetails[]>(queryKey)
 
-        if (error) toast.error('操作に失敗しました')
-        else toast.success(currentLock ? 'ロックを解除しました' : '編集権限をロックしました')
+        if (previousItems) {
+            queryClient.setQueryData<ItemWithDetails[]>(queryKey, (old) => {
+                if (!old) return []
+                return old.map(item =>
+                    item.id === id
+                        ? { ...item, is_admin_locked: !currentLock }
+                        : item
+                )
+            })
+        }
+
+        try {
+            const { error } = await supabase
+                .from('items')
+                .update({ is_admin_locked: !currentLock })
+                .eq('id', id)
+
+            if (error) throw error
+            toast.success(currentLock ? 'ロックを解除しました' : '編集権限をロックしました')
+            queryClient.invalidateQueries({ queryKey })
+        } catch (err) {
+            console.error(err)
+            toast.error('操作に失敗しました')
+            if (previousItems) {
+                queryClient.setQueryData(queryKey, previousItems)
+            }
+        }
     }
 
     const updateStatus = async (itemId: string, statusId: number) => {
@@ -115,6 +199,7 @@ export default function AdminItemList() {
 
             if (error) throw error
             toast.success('ステータスを更新しました')
+            queryClient.invalidateQueries({ queryKey })
         } catch (err) {
             console.error(err)
             toast.error('更新に失敗しました')
@@ -124,11 +209,31 @@ export default function AdminItemList() {
         }
     }
 
+    const handleEdit = (item: ItemWithDetails) => {
+        setEditingItem(item)
+        setIsModalOpen(true)
+    }
+
+    const handleDelete = async (itemId: string) => {
+        if (!confirm('本当にこの商品を削除しますか？')) return
+        try {
+            const { error } = await supabase.from('items').delete().eq('id', itemId)
+            if (error) throw error
+            toast.success('削除しました')
+            refetch()
+        } catch (err) {
+            console.error(err)
+            toast.error('削除に失敗しました')
+        }
+    }
+
     const filteredItems = useMemo(() => {
         if (!items) return []
         return items.filter(item => {
-            const matchSearch = item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                item.owner?.group_name?.toLowerCase().includes(searchQuery.toLowerCase())
+            const matchSearch = 
+                item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                (item.owner?.group_name?.toLowerCase() || '').includes(searchQuery.toLowerCase()) ||
+                (item.owner?.display_name?.toLowerCase() || '').includes(searchQuery.toLowerCase())
             const matchCategory = selectedCategory === 'all' || item.category_id === selectedCategory
             return matchSearch && matchCategory
         })
@@ -138,10 +243,14 @@ export default function AdminItemList() {
         <div className="bg-white border border-slate-200 p-6 md:p-8 rounded-3xl shadow-sm">
             <AdminItemFormModal
                 isOpen={isModalOpen}
-                onClose={() => setIsModalOpen(false)}
+                onClose={() => {
+                    setIsModalOpen(false)
+                    setEditingItem(null)
+                }}
                 onSuccess={() => {
                     refetch()
                 }}
+                initialItem={editingItem}
             />
             
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6 border-b border-slate-100 pb-4">
@@ -150,7 +259,10 @@ export default function AdminItemList() {
                         <PackageOpen className="w-4 h-4 text-indigo-600" />
                         登録商品一覧
                         <button
-                            onClick={() => setIsModalOpen(true)}
+                            onClick={() => {
+                                setEditingItem(null)
+                                setIsModalOpen(true)
+                            }}
                             className="p-1 rounded-full bg-indigo-50 hover:bg-indigo-100 text-indigo-600 border border-indigo-100 transition-all cursor-pointer"
                             title="新規アイテム追加"
                         >
@@ -190,6 +302,45 @@ export default function AdminItemList() {
                 </div>
             </div>
 
+            {/* Bulk Action Controls Bar */}
+            {filteredItems.length > 0 && (
+                <div className="flex flex-wrap items-center justify-between gap-3 bg-slate-50 border border-slate-200/60 p-3.5 rounded-2xl mb-4 text-xs font-bold text-slate-600 shadow-sm">
+                    <div className="flex items-center gap-2.5">
+                        <input
+                            type="checkbox"
+                            checked={filteredItems.length > 0 && selectedItemIds.length === filteredItems.length}
+                            onChange={handleToggleSelectAll}
+                            className="w-4 h-4 text-indigo-600 border-slate-300 rounded focus:ring-indigo-500 cursor-pointer"
+                        />
+                        <span>
+                            {selectedItemIds.length > 0 
+                                ? `選択中: ${selectedItemIds.length}件` 
+                                : `すべて選択 (${filteredItems.length}件)`
+                            }
+                        </span>
+                    </div>
+
+                    {selectedItemIds.length > 0 && (
+                        <div className="flex gap-2 animate-fade-in">
+                            <button
+                                onClick={() => handleBulkLock(true)}
+                                className="flex items-center gap-1.5 px-3 py-1.5 bg-rose-50 hover:bg-rose-100 border border-rose-200 text-rose-600 rounded-xl transition-all cursor-pointer shadow-sm"
+                            >
+                                <Lock size={12} />
+                                <span>選択中を一括ロック</span>
+                            </button>
+                            <button
+                                onClick={() => handleBulkLock(false)}
+                                className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-100 hover:bg-slate-200 border border-slate-300 text-slate-700 rounded-xl transition-all cursor-pointer shadow-sm"
+                            >
+                                <Unlock size={12} />
+                                <span>選択中を一括許可</span>
+                            </button>
+                        </div>
+                    )}
+                </div>
+            )}
+
             {/* Responsive Grid list */}
             <div className="grid gap-3">
                 {filteredItems.map((item) => (
@@ -203,13 +354,23 @@ export default function AdminItemList() {
                             }
                         `}
                     >
-                        <div className="flex items-start gap-3.5 flex-1">
+                        <div className="flex items-center gap-3.5 flex-1 w-full">
+                            <input
+                                type="checkbox"
+                                checked={selectedItemIds.includes(item.id)}
+                                onChange={() => handleToggleSelect(item.id)}
+                                className="w-4 h-4 text-indigo-600 border-slate-300 rounded focus:ring-indigo-500 cursor-pointer shrink-0"
+                            />
+
+                            <div className="flex items-start gap-3.5 flex-1">
                             <div className="w-12 h-12 rounded-xl bg-slate-50 border border-slate-200 flex-shrink-0 overflow-hidden relative">
                                 {item.image_url ? (
                                     // eslint-disable-next-line @next/next/no-img-element
                                     <img src={item.image_url} alt="" className="w-full h-full object-cover" />
                                 ) : (
-                                    <div className="w-full h-full flex items-center justify-center opacity-30 text-[10px] text-slate-500 font-bold bg-slate-50">📷</div>
+                                    <div className="w-full h-full flex items-center justify-center bg-slate-50">
+                                        <Camera className="w-5 h-5 text-slate-400 opacity-60" />
+                                    </div>
                                 )}
                             </div>
                             <div className="space-y-0.5">
@@ -222,6 +383,7 @@ export default function AdminItemList() {
                                     {item.category?.name && <span className="text-indigo-600 font-bold">{item.category.name}</span>}
                                 </div>
                             </div>
+                        </div>
                         </div>
 
                         {/* Controls */}
@@ -265,6 +427,25 @@ export default function AdminItemList() {
                                     </>
                                 )}
                             </button>
+
+                            <div className="flex gap-2">
+                                <button
+                                    onClick={() => handleEdit(item)}
+                                    className="flex items-center gap-1 px-3 py-1.5 rounded-xl text-xs font-bold bg-slate-50 border border-slate-200 text-slate-600 hover:text-indigo-600 hover:bg-slate-100 transition-all cursor-pointer"
+                                    title="編集"
+                                >
+                                    <Edit2 size={12} />
+                                    <span>編集</span>
+                                </button>
+                                <button
+                                    onClick={() => handleDelete(item.id)}
+                                    className="flex items-center gap-1 px-3 py-1.5 rounded-xl text-xs font-bold bg-rose-50 border border-rose-200 text-rose-600 hover:bg-rose-100 transition-all cursor-pointer"
+                                    title="削除"
+                                >
+                                    <Trash2 size={12} />
+                                    <span>削除</span>
+                                </button>
+                            </div>
                         </div>
                     </div>
                 ))}
