@@ -402,14 +402,14 @@ export default function AdminItemList() {
                         </div>
 
                         {/* Controls */}
-                        <div className="flex flex-wrap items-center justify-between md:justify-end gap-3 pt-3 md:pt-0 border-t md:border-t-0 border-slate-100 w-full md:w-auto">
+                        <div className="grid grid-cols-2 md:flex md:flex-wrap items-center justify-between md:justify-end gap-2.5 pt-3 md:pt-0 border-t md:border-t-0 border-slate-100 w-full md:w-auto">
                             
                             {/* Status Selector dropdown */}
-                            <div className="relative flex items-center">
+                            <div className="col-span-2 md:col-auto relative flex items-center w-full md:w-auto">
                                 <select
                                     value={item.status_id || ''}
                                     onChange={(e) => updateStatus(item.id, Number(e.target.value))}
-                                    className={`appearance-none cursor-pointer pl-3.5 pr-8 py-1.5 rounded-xl text-xs font-bold border transition-all focus:outline-none focus:ring-2 ${getStatusSelectClass(item.status?.color)}`}
+                                    className={`appearance-none cursor-pointer pl-3.5 pr-8 py-1.5 rounded-xl text-xs font-bold border transition-all focus:outline-none focus:ring-2 w-full md:w-auto ${getStatusSelectClass(item.status?.color)}`}
                                 >
                                     {statuses?.map((msg) => (
                                         <option key={msg.id} value={msg.id} className="text-slate-700 bg-white">
@@ -423,7 +423,7 @@ export default function AdminItemList() {
                             <button
                                 onClick={() => toggleLock(item.id, item.is_admin_locked)}
                                 className={`
-                                    flex items-center gap-1 px-3 py-1.5 rounded-xl text-xs font-bold transition-all border cursor-pointer
+                                    col-span-1 flex items-center justify-center gap-1 px-3 py-1.5 rounded-xl text-xs font-bold transition-all border cursor-pointer w-full md:w-auto
                                     ${item.is_admin_locked
                                         ? 'bg-rose-50 border-rose-200 text-rose-600 hover:bg-rose-100'
                                         : 'bg-slate-50 border-slate-200 text-slate-600 hover:bg-slate-100'
@@ -443,10 +443,10 @@ export default function AdminItemList() {
                                 )}
                             </button>
 
-                            <div className="flex gap-2">
+                            <div className="col-span-1 flex gap-2 w-full md:w-auto justify-end">
                                 <button
                                     onClick={() => handleEdit(item)}
-                                    className="flex items-center gap-1 px-3 py-1.5 rounded-xl text-xs font-bold bg-slate-50 border border-slate-200 text-slate-600 hover:text-indigo-600 hover:bg-slate-100 transition-all cursor-pointer"
+                                    className="flex-1 md:flex-initial flex items-center justify-center gap-1 px-3 py-1.5 rounded-xl text-xs font-bold bg-slate-50 border border-slate-200 text-slate-600 hover:text-indigo-600 hover:bg-slate-100 transition-all cursor-pointer"
                                     title="編集"
                                 >
                                     <Edit2 size={12} />
@@ -454,7 +454,7 @@ export default function AdminItemList() {
                                 </button>
                                 <button
                                     onClick={() => handleDelete(item.id)}
-                                    className="flex items-center gap-1 px-3 py-1.5 rounded-xl text-xs font-bold bg-rose-50 border border-rose-200 text-rose-600 hover:bg-rose-100 transition-all cursor-pointer"
+                                    className="flex-1 md:flex-initial flex items-center justify-center gap-1 px-3 py-1.5 rounded-xl text-xs font-bold bg-rose-50 border border-rose-200 text-rose-600 hover:bg-rose-100 transition-all cursor-pointer"
                                     title="削除"
                                 >
                                     <Trash2 size={12} />

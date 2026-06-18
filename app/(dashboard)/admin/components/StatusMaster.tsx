@@ -216,7 +216,7 @@ export default function StatusMaster() {
                                 <div className={`w-3 h-3 rounded-full ${status.color} shadow-sm`} />
                                 <span className="flex-1 font-bold text-slate-700 text-xs">{status.label}</span>
                                 <span className="text-[10px] text-slate-400 font-mono font-bold">SORT: {status.sort_order}</span>
-                                <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                <div className="flex gap-1 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity">
                                     <button onClick={() => startEdit(status)} className="p-1.5 text-slate-500 hover:text-indigo-600 hover:bg-slate-50 rounded border border-slate-200/50 cursor-pointer"><Edit2 size={13} /></button>
                                     <button onClick={() => handleDelete(status.id)} className="p-1.5 text-rose-500 hover:text-rose-600 hover:bg-slate-50 rounded border border-slate-200/50 cursor-pointer"><Trash2 size={13} /></button>
                                 </div>

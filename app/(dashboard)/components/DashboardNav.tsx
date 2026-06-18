@@ -18,7 +18,7 @@ export default function DashboardNav({ role }: { role: string }) {
     const inactiveClass = "border-transparent hover:bg-slate-50 text-slate-600 hover:text-slate-800"
 
     return (
-        <nav className="flex space-x-2 md:flex-col md:space-x-0 md:space-y-2.5 w-full">
+        <nav className="flex flex-col space-y-2 w-full">
             {role === 'admin' && (
                 <Link
                     href="/admin"
