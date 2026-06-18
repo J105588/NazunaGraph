@@ -25,73 +25,96 @@ const TRAP_PATHS = [
 const allowedIpsCache = new Map<string, number>()
 const CACHE_TTL_MS = 60 * 1000
 
+// Helper to check if IP is a local loopback address
+function isLocalIp(ip: string): boolean {
+    return ip === '127.0.0.1' || ip === '::1' || ip === 'localhost' || ip.startsWith('fe80:')
+}
+
 export async function middleware(request: NextRequest) {
+    const path = request.nextUrl.pathname
+
+    // 1. Quick static asset & system path exclusion (Early Return)
+    // Skip all middleware overhead for internal Next.js assets, favicons, and common static files
+    const isStaticAsset = /\.(?:svg|png|jpg|jpeg|gif|webp|css|js|woff2?|ttf|eot)$/i.test(path)
+    const isTrap = TRAP_PATHS.some(trap => path.startsWith(trap) || path.includes(trap))
+
+    if (!isTrap) {
+        if (
+            path.startsWith('/_next') ||
+            path.startsWith('/favicon.ico') ||
+            path.startsWith('/locked') ||
+            isStaticAsset
+        ) {
+            return NextResponse.next()
+        }
+    }
+
+    // 2. IP Extraction (Only performed for dynamic routes / traps)
+    let ip = request.headers.get('x-forwarded-for')
+    if (ip) {
+        ip = ip.split(',')[0].trim()
+    } else {
+        ip = request.headers.get('x-real-ip') || 'unknown'
+    }
+
+    // 3. Skip checks for development or local loopback IPs
+    const isDev = process.env.NODE_ENV === 'development'
+    const isLocal = ip !== 'unknown' && isLocalIp(ip)
+
     let response = NextResponse.next({
         request: {
             headers: request.headers,
         },
     })
 
-    const path = request.nextUrl.pathname
-
-    // 1. IP Extraction
-    let ip = request.headers.get('x-forwarded-for')
-    if (ip) {
-        ip = ip.split(',')[0].trim()
-    } else {
-        ip = 'unknown' // In dev/local without proxy, might be undefined.
+    // Lazy Supabase client creator to avoid client initialization for early exits or skipped checks
+    const getSupabaseClient = () => {
+        return createServerClient(
+            process.env.NEXT_PUBLIC_SUPABASE_URL!,
+            process.env.SUPABASE_SERVICE_ROLE_KEY!,
+            {
+                cookies: {
+                    getAll() {
+                        return request.cookies.getAll()
+                    },
+                    setAll(cookiesToSet) {
+                        cookiesToSet.forEach(({ name, value }) =>
+                            request.cookies.set(name, value)
+                        )
+                        response = NextResponse.next({
+                            request: {
+                                headers: request.headers,
+                            },
+                        })
+                        cookiesToSet.forEach(({ name, value, options }) =>
+                            response.cookies.set(name, value, options)
+                        )
+                    },
+                },
+            }
+        )
     }
 
-    // Identify if this is a HONEYPOT access
-    const isTrap = TRAP_PATHS.some(trap => path.startsWith(trap) || path.includes(trap))
-
-    const supabase = createServerClient(
-        process.env.NEXT_PUBLIC_SUPABASE_URL!,
-        process.env.SUPABASE_SERVICE_ROLE_KEY!, // Use Service Role for Middleware Checks? 
-        // WARNING: Using Service Role Key in Middleware exposes it if middleware code is bundled to client? 
-        // Next.js Middleware runs on Edge, but we should use standard client if possible.
-        // HOWEVER, we need to read security_logs which is restricted.
-        // AND write to it if trap.
-        // Middleware runs server-side, so env vars are safe *if* not prefixed with NEXT_PUBLIC.
-        // `SUPABASE_SERVICE_ROLE_KEY` is usually server-only.
-        {
-            cookies: {
-                getAll() {
-                    return request.cookies.getAll()
-                },
-                setAll(cookiesToSet) {
-                    cookiesToSet.forEach(({ name, value, options }) =>
-                        request.cookies.set(name, value)
-                    )
-                    response = NextResponse.next({
-                        request: {
-                            headers: request.headers,
-                        },
-                    })
-                    cookiesToSet.forEach(({ name, value, options }) =>
-                        response.cookies.set(name, value, options)
-                    )
-                },
-            },
-        }
-    )
-
-    // 2. Autonomous Defense: Honeypot Trigger
+    // 4. Autonomous Defense: Honeypot Trigger
     if (isTrap && ip !== 'unknown') {
         console.warn(`[AUTONOMOUS DEFENSE] Trap triggered by ${ip} on ${path}`)
 
         // Remove from allowed cache immediately
         allowedIpsCache.delete(ip)
 
-        // Ban the IP immediately
-        await supabase
-            .from('security_logs')
-            .insert({
-                user_id: null, // System ban
-                ip_address: ip,
-                user_agent: request.headers.get('user-agent') || 'unknown',
-                reason: `AUTONOMOUS DEFENSE: Trap access (${path})`
-            })
+        // Don't write to DB in development/local environments
+        if (!isDev && !isLocal) {
+            const supabase = getSupabaseClient()
+            // Ban the IP immediately
+            await supabase
+                .from('security_logs')
+                .insert({
+                    user_id: null, // System ban
+                    ip_address: ip,
+                    user_agent: request.headers.get('user-agent') || 'unknown',
+                    reason: `AUTONOMOUS DEFENSE: Trap access (${path})`
+                })
+        }
 
         if (path.startsWith('/api/')) {
             return NextResponse.json(
@@ -102,11 +125,8 @@ export async function middleware(request: NextRequest) {
         return NextResponse.redirect(new URL('/locked', request.url))
     }
 
-    // 3. Lockout Check
-    // Skip checking if already on /locked, static assets, or if it is a safe static file extension
-    const isStaticAsset = /\.(?:svg|png|jpg|jpeg|gif|webp|css|js|woff2?|ttf|eot)$/i.test(path)
-
-    if (ip !== 'unknown' && !path.startsWith('/locked') && !path.startsWith('/_next') && !path.startsWith('/favicon.ico') && (!isStaticAsset || isTrap)) {
+    // 5. Lockout Check (Skipped for development or local loopback IPs to maximize speed)
+    if (ip !== 'unknown' && !isDev && !isLocal) {
         const now = Date.now()
         const cachedExpiry = allowedIpsCache.get(ip)
         let isLocked = false
@@ -115,7 +135,8 @@ export async function middleware(request: NextRequest) {
             // Cache hit - skip database query!
         } else {
             // Cache miss - query database
-            const { data, error } = await supabase
+            const supabase = getSupabaseClient()
+            const { data } = await supabase
                 .from('security_logs')
                 .select('created_at')
                 .eq('ip_address', ip)
