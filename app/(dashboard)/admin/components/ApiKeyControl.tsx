@@ -69,7 +69,7 @@ export default function ApiKeyControl() {
                 onClose={() => setIsConfirmOpen(false)}
                 onConfirm={handleGenerate}
                 title="APIキーを再生成しますか？"
-                message={`新しいAPIキーを生成すると、現在のAPIキーは無効になります。\n\nこのキーを使用しているすべての外部連携システム（デジタルサイネージ、案内パネル等）が一時的に通信できなくなりますのでご注意ください。`}
+                message={`新しいAPIキーを生成すると、現在のAPIキーは無効になります。\n\nこのキーを使用しているすべての外部連携システムが一時的に通信できなくなりますのでご注意ください。`}
                 confirmText="新しいキーを生成する"
                 cancelText="キャンセル"
                 variant="warning"
@@ -86,7 +86,7 @@ export default function ApiKeyControl() {
                         APIアクセスキー設定
                     </h3>
                     <p className="text-xs text-slate-500 leading-relaxed">
-                        外部サイネージや連携システムで商品データ取得API（`/api/items`）を呼び出す際に使用する認証キーです。キーによる検証を必要とするため、リクエストに含めてください。
+                        商品データ取得API（`/api/items`）を呼び出す際に使用する認証キーです。キーによる検証を必要とするため、リクエストに含めてください。
                     </p>
                 </div>
 
