@@ -15,17 +15,55 @@ export async function GET(request: NextRequest) {
     try {
         const { searchParams } = new URL(request.url)
 
-        // Parse filtering parameters
-        const ownerId = searchParams.get('owner_id')
-        const categoryId = searchParams.get('category_id')
-        const statusId = searchParams.get('status_id')
-        const limitStr = searchParams.get('limit')
+        // 1. Extract key from incoming request
+        const apiKeyParam = searchParams.get('api_key')
+        const apiKeyHeader = request.headers.get('x-api-key')
+        const authHeader = request.headers.get('authorization')
+        let bearerToken: string | null = null
+
+        if (authHeader && authHeader.toLowerCase().startsWith('bearer ')) {
+            bearerToken = authHeader.substring(7).trim()
+        }
+
+        const providedKey = apiKeyHeader || bearerToken || apiKeyParam
+
+        if (!providedKey) {
+            return NextResponse.json(
+                { error: 'Unauthorized', message: 'Invalid or missing API key.' },
+                { status: 401, headers: corsHeaders }
+            )
+        }
 
         // Initialize a standard supabase client that doesn't rely on browser/cookie context
         const supabase = createClient(
             process.env.NEXT_PUBLIC_SUPABASE_URL!,
             process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
         )
+
+        // 2. Call the database function to verify the API key on the DB side
+        const { data: isValid, error: rpcError } = await supabase
+            .rpc('verify_api_key', { provided_key: providedKey })
+
+        if (rpcError) {
+            console.error('[API ERROR] Failed to verify API key in DB:', rpcError)
+            return NextResponse.json(
+                { error: 'Unauthorized', message: 'API key validation failed on the server.' },
+                { status: 401, headers: corsHeaders }
+            )
+        }
+
+        if (!isValid) {
+            return NextResponse.json(
+                { error: 'Unauthorized', message: 'Invalid or missing API key.' },
+                { status: 401, headers: corsHeaders }
+            )
+        }
+
+        // Parse filtering parameters
+        const ownerId = searchParams.get('owner_id')
+        const categoryId = searchParams.get('category_id')
+        const statusId = searchParams.get('status_id')
+        const limitStr = searchParams.get('limit')
 
         // Build the query selecting only safe public columns
         let query = supabase

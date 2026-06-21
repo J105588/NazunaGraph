@@ -8,6 +8,7 @@ import StatusMaster from './StatusMaster'
 import CategoryMaster from './CategoryMaster'
 import UserManagement from './UserManagement'
 import MaintenanceControl from './MaintenanceControl'
+import ApiKeyControl from './ApiKeyControl'
 import SystemReset from './SystemReset'
 
 type TabType = 'items' | 'master' | 'users' | 'system'
@@ -76,8 +77,11 @@ export default function AdminTabsWrapper() {
                         )}
 
                         {activeTab === 'system' && (
-                            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8">
-                                <MaintenanceControl />
+                            <div className="space-y-6">
+                                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8">
+                                    <MaintenanceControl />
+                                    <ApiKeyControl />
+                                </div>
                                 <SystemReset />
                             </div>
                         )}
