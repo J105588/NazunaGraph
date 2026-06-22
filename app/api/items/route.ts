@@ -7,6 +7,12 @@ const corsHeaders = {
     'Access-Control-Allow-Headers': 'Content-Type, Authorization',
 }
 
+// Reuse Supabase client instance across serverless function warm starts
+const supabase = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+)
+
 export async function OPTIONS() {
     return NextResponse.json({}, { headers: corsHeaders })
 }
@@ -34,11 +40,7 @@ export async function GET(request: NextRequest) {
             )
         }
 
-        // Initialize a standard supabase client that doesn't rely on browser/cookie context
-        const supabase = createClient(
-            process.env.NEXT_PUBLIC_SUPABASE_URL!,
-            process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-        )
+        // Using the cached Supabase client from module scope
 
         // 2. Call the database function to verify the API key on the DB side
         const { data: isValid, error: rpcError } = await supabase

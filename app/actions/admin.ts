@@ -1,7 +1,7 @@
 'use server'
 
 import { createClient } from '@/utils/supabase/server'
-import { createClient as createAdminClient } from '@supabase/supabase-js'
+import { getAdminClient } from '@/utils/supabase/admin'
 
 export async function resetUserPassword(userId: string, newPassword: string) {
     // 1. Verify Requesting User is Admin
@@ -23,18 +23,9 @@ export async function resetUserPassword(userId: string, newPassword: string) {
     }
 
     // 2. Perform Password Reset using Admin Client (Service Role)
-    const adminClient = createAdminClient(
-        process.env.NEXT_PUBLIC_SUPABASE_URL!,
-        process.env.SUPABASE_SERVICE_ROLE_KEY!,
-        {
-            auth: {
-                autoRefreshToken: false,
-                persistSession: false
-            }
-        }
-    )
+    const adminClient = getAdminClient()
 
-    const { data, error } = await adminClient.auth.admin.updateUserById(
+    const { error } = await adminClient.auth.admin.updateUserById(
         userId,
         { password: newPassword }
     )
@@ -72,16 +63,7 @@ export async function createUser(formData: FormData) {
     }
 
     // 2. Create User via Admin Client
-    const adminClient = createAdminClient(
-        process.env.NEXT_PUBLIC_SUPABASE_URL!,
-        process.env.SUPABASE_SERVICE_ROLE_KEY!,
-        {
-            auth: {
-                autoRefreshToken: false,
-                persistSession: false
-            }
-        }
-    )
+    const adminClient = getAdminClient()
 
     const { data: newUser, error } = await adminClient.auth.admin.createUser({
         email,
@@ -132,16 +114,7 @@ export async function adminUpdateUserProfile(
     }
 
     // 2. Initialize Admin Client with service role key
-    const adminClient = createAdminClient(
-        process.env.NEXT_PUBLIC_SUPABASE_URL!,
-        process.env.SUPABASE_SERVICE_ROLE_KEY!,
-        {
-            auth: {
-                autoRefreshToken: false,
-                persistSession: false
-            }
-        }
-    )
+    const adminClient = getAdminClient()
 
     // 3. If role is being updated, update auth user metadata role as well
     if (updates.role) {

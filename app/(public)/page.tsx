@@ -1,11 +1,46 @@
-import GroupList from './components/GroupList'
+import GroupList, { GroupProfile } from './components/GroupList'
 import AnimatedTitle from './components/AnimatedTitle'
 import LuxuriousBackground from './components/LuxuriousBackground'
 import Link from 'next/link'
+import { createClient } from '@/utils/supabase/server'
 
 export const dynamic = 'force-dynamic'
 
+async function getInitialGroups(): Promise<GroupProfile[]> {
+    const supabase = await createClient()
+    const { data, error } = await supabase
+        .from('profiles')
+        .select(`
+            id,
+            display_name,
+            group_name,
+            image_url,
+            is_visible,
+            category:categories (
+                id,
+                name,
+                sort_order
+            ),
+            items (
+                status:status_definitions (
+                    color,
+                    label
+                )
+            )
+        `)
+        .in('role', ['group', 'admin'])
+        .order('group_name')
+
+    if (error) {
+        console.error('Failed to pre-fetch groups on server:', error)
+        return []
+    }
+    return (data || []) as unknown as GroupProfile[]
+}
+
 export default async function Home() {
+    const initialGroups = await getInitialGroups()
+
     return (
         <main className="min-h-screen p-4 md:p-12 relative overflow-hidden bg-slate-50/50">
             <LuxuriousBackground />
@@ -31,7 +66,7 @@ export default async function Home() {
                     </div>
                 </header>
 
-                <GroupList />
+                <GroupList initialGroups={initialGroups} />
 
                 <footer className="text-center text-slate-400 text-xs font-light tracking-widest py-16 border-t border-slate-200/50 mt-16 max-w-md mx-auto">
                     © 2026 なずな祭実行委員会 & Junxiang Jin. All rights reserved.

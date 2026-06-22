@@ -3,13 +3,27 @@
 import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Package, Tags, Users, Sliders } from 'lucide-react'
+import dynamic from 'next/dynamic'
 import AdminItemList from './AdminItemList'
-import StatusMaster from './StatusMaster'
-import CategoryMaster from './CategoryMaster'
-import UserManagement from './UserManagement'
-import MaintenanceControl from './MaintenanceControl'
-import ApiKeyControl from './ApiKeyControl'
-import SystemReset from './SystemReset'
+
+const StatusMaster = dynamic(() => import('./StatusMaster'), {
+    loading: () => <div className="animate-pulse bg-slate-100/50 rounded-2xl h-48 border border-slate-200" />
+})
+const CategoryMaster = dynamic(() => import('./CategoryMaster'), {
+    loading: () => <div className="animate-pulse bg-slate-100/50 rounded-2xl h-48 border border-slate-200" />
+})
+const UserManagement = dynamic(() => import('./UserManagement'), {
+    loading: () => <div className="animate-pulse bg-slate-100/50 rounded-2xl h-64 border border-slate-200" />
+})
+const MaintenanceControl = dynamic(() => import('./MaintenanceControl'), {
+    loading: () => <div className="animate-pulse bg-slate-100/50 rounded-2xl h-48 border border-slate-200" />
+})
+const ApiKeyControl = dynamic(() => import('./ApiKeyControl'), {
+    loading: () => <div className="animate-pulse bg-slate-100/50 rounded-2xl h-48 border border-slate-200" />
+})
+const SystemReset = dynamic(() => import('./SystemReset'), {
+    loading: () => <div className="animate-pulse bg-slate-100/50 rounded-2xl h-48 border border-slate-200" />
+})
 
 type TabType = 'items' | 'master' | 'users' | 'system'
 

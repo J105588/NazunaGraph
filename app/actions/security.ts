@@ -1,8 +1,7 @@
 'use server'
 
 import { headers } from 'next/headers'
-import { createClient } from '@/utils/supabase/server'
-import { createClient as createAdminClient } from '@supabase/supabase-js'
+import { getAdminClient } from '@/utils/supabase/admin'
 
 export async function logSecurityEvent(userId: string, reason: string) {
     const headerStore = await headers()
@@ -21,16 +20,7 @@ export async function logSecurityEvent(userId: string, reason: string) {
     // Use Admin Client to bypass RLS if necessary, or just standard server client
     // Since we want to ensure it's written even if user is logged out (technically user IS logged out when this happens),
     // we should use service role.
-    const adminClient = createAdminClient(
-        process.env.NEXT_PUBLIC_SUPABASE_URL!,
-        process.env.SUPABASE_SERVICE_ROLE_KEY!,
-        {
-            auth: {
-                autoRefreshToken: false,
-                persistSession: false
-            }
-        }
-    )
+    const adminClient = getAdminClient()
 
     const { error } = await adminClient
         .from('security_logs')
@@ -74,16 +64,7 @@ export async function checkIpLockout() {
 
     if (ip === 'unknown') return { locked: false }
 
-    const adminClient = createAdminClient(
-        process.env.NEXT_PUBLIC_SUPABASE_URL!,
-        process.env.SUPABASE_SERVICE_ROLE_KEY!,
-        {
-            auth: {
-                autoRefreshToken: false,
-                persistSession: false
-            }
-        }
-    )
+    const adminClient = getAdminClient()
 
     // Check for any logs for this IP in the last 24 hours that are NOT resolved
     const { data, error } = await adminClient
@@ -128,11 +109,7 @@ export async function unlockSystem(key: string) {
         return { success: false, message: 'Could not identify device IP' }
     }
 
-    const adminClient = createAdminClient(
-        process.env.NEXT_PUBLIC_SUPABASE_URL!,
-        process.env.SUPABASE_SERVICE_ROLE_KEY!,
-        { auth: { autoRefreshToken: false, persistSession: false } }
-    )
+    const adminClient = getAdminClient()
 
     // Delete logs for this specific IP
     // Soft-delete (resolve) logs for this specific IP instead of deleting

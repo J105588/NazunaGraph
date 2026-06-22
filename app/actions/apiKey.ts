@@ -1,7 +1,7 @@
 'use server'
 
 import { createClient } from '@/utils/supabase/server'
-import { createClient as createAdminClient } from '@supabase/supabase-js'
+import { getAdminClient } from '@/utils/supabase/admin'
 import crypto from 'crypto'
 
 // Helper to verify admin role
@@ -29,16 +29,7 @@ export async function getApiKey() {
     await verifyAdmin()
 
     // Query system_settings using service role to bypass RLS restrictions on 'api_key'
-    const adminClient = createAdminClient(
-        process.env.NEXT_PUBLIC_SUPABASE_URL!,
-        process.env.SUPABASE_SERVICE_ROLE_KEY!,
-        {
-            auth: {
-                autoRefreshToken: false,
-                persistSession: false
-            }
-        }
-    )
+    const adminClient = getAdminClient()
 
     const { data, error } = await adminClient
         .from('system_settings')
@@ -64,16 +55,7 @@ export async function generateApiKey() {
     // Generate secure random key: nz_ + 48 hex characters (24 bytes)
     const newKey = `nz_` + crypto.randomBytes(24).toString('hex')
 
-    const adminClient = createAdminClient(
-        process.env.NEXT_PUBLIC_SUPABASE_URL!,
-        process.env.SUPABASE_SERVICE_ROLE_KEY!,
-        {
-            auth: {
-                autoRefreshToken: false,
-                persistSession: false
-            }
-        }
-    )
+    const adminClient = getAdminClient()
 
     const { error } = await adminClient
         .from('system_settings')

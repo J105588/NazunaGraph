@@ -2,9 +2,19 @@
 
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { useState } from 'react'
-import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
-
 import { Toaster } from 'react-hot-toast'
+import dynamic from 'next/dynamic'
+
+const ReactQueryDevtools =
+    process.env.NODE_ENV === 'production'
+        ? () => null
+        : dynamic(
+            () =>
+                import('@tanstack/react-query-devtools').then((res) => ({
+                    default: res.ReactQueryDevtools,
+                })),
+            { ssr: false }
+        )
 
 export default function Providers({ children }: { children: React.ReactNode }) {
     const [queryClient] = useState(
