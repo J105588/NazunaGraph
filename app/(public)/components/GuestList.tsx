@@ -192,11 +192,10 @@ export default function GuestList({ initialItems, ownerId }: { initialItems: Ite
                             return (
                                 <motion.div
                                     key={item.id}
-                                    layout
                                     initial={{ opacity: 0, scale: 0.96 }}
                                     animate={{ opacity: 1, scale: 1 }}
                                     exit={{ opacity: 0, scale: 0.96 }}
-                                    transition={{ duration: 0.25, delay: Math.min(index * 0.05, 0.2) }}
+                                    transition={{ duration: 0.2, delay: Math.min(index * 0.02, 0.08) }}
                                     className="art-card group h-full flex flex-col border border-slate-200 bg-white rounded-2xl overflow-hidden hover:border-indigo-100"
                                 >
                                     {/* Image Area */}

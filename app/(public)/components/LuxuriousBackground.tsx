@@ -1,10 +1,9 @@
 'use client'
 
-import { motion } from 'framer-motion'
 import { useEffect, useState } from 'react'
 
 export default function LuxuriousBackground() {
-    const [particles, setParticles] = useState<{ id: number; x: number; y: number; size: number; duration: number; xOffset: number }[]>([])
+    const [particles, setParticles] = useState<{ id: number; x: number; y: number; size: number; duration: string; xOffset: string }[]>([])
 
     useEffect(() => {
         // Generate random particles
@@ -14,13 +13,10 @@ export default function LuxuriousBackground() {
             x: Math.random() * 100,
             y: Math.random() * 100,
             size: Math.random() * 6 + 2, // slightly larger, softer particles
-            duration: Math.random() * 12 + 12,
-            xOffset: Math.random() * 20 - 10,
+            duration: `${(Math.random() * 12 + 12).toFixed(2)}s`,
+            xOffset: `${(Math.random() * 20 - 10).toFixed(2)}px`,
         }))
-        const timer = setTimeout(() => {
-            setParticles(newParticles)
-        }, 0)
-        return () => clearTimeout(timer)
+        setParticles(newParticles)
     }, [])
 
     return (
@@ -55,26 +51,17 @@ export default function LuxuriousBackground() {
 
             {/* Soft floating white particles */}
             {particles.map((p) => (
-                <motion.div
+                <div
                     key={p.id}
-                    className="absolute rounded-full bg-indigo-200/40"
+                    className="floating-particle"
                     style={{
                         left: `${p.x}%`,
                         top: `${p.y}%`,
                         width: p.size,
                         height: p.size,
-                        filter: 'blur(1px)',
-                    }}
-                    animate={{
-                        y: [0, -80, 0],
-                        x: [0, p.xOffset, 0],
-                        opacity: [0.15, 0.4, 0.15],
-                    }}
-                    transition={{
-                        duration: p.duration,
-                        repeat: Infinity,
-                        ease: "easeInOut",
-                    }}
+                        '--duration': p.duration,
+                        '--x-offset': p.xOffset,
+                    } as React.CSSProperties}
                 />
             ))}
         </div>

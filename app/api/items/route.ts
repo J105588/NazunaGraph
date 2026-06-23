@@ -7,6 +7,11 @@ const corsHeaders = {
     'Access-Control-Allow-Headers': 'Content-Type, Authorization',
 }
 
+const jsonHeaders = {
+    ...corsHeaders,
+    'Content-Type': 'application/json; charset=utf-8',
+}
+
 // Reuse Supabase client instance across serverless function warm starts
 const supabase = createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -36,7 +41,7 @@ export async function GET(request: NextRequest) {
         if (!providedKey) {
             return NextResponse.json(
                 { error: 'Unauthorized', message: 'Invalid or missing API key.' },
-                { status: 401, headers: corsHeaders }
+                { status: 401, headers: jsonHeaders }
             )
         }
 
@@ -50,14 +55,14 @@ export async function GET(request: NextRequest) {
             console.error('[API ERROR] Failed to verify API key in DB:', rpcError)
             return NextResponse.json(
                 { error: 'Unauthorized', message: 'API key validation failed on the server.' },
-                { status: 401, headers: corsHeaders }
+                { status: 401, headers: jsonHeaders }
             )
         }
 
         if (!isValid) {
             return NextResponse.json(
                 { error: 'Unauthorized', message: 'Invalid or missing API key.' },
-                { status: 401, headers: corsHeaders }
+                { status: 401, headers: jsonHeaders }
             )
         }
 
@@ -130,7 +135,7 @@ export async function GET(request: NextRequest) {
             console.error('[API ERROR] Failed to fetch items:', error)
             return NextResponse.json(
                 { error: 'Failed to fetch items', details: error.message },
-                { status: 500, headers: corsHeaders }
+                { status: 500, headers: jsonHeaders }
             )
         }
 
@@ -156,7 +161,7 @@ export async function GET(request: NextRequest) {
 
         return NextResponse.json(transformed, {
             headers: {
-                ...corsHeaders,
+                ...jsonHeaders,
                 'Cache-Control': 'public, s-maxage=5, stale-while-revalidate=10'
             }
         })
@@ -165,7 +170,7 @@ export async function GET(request: NextRequest) {
         console.error('[API ERROR] Unexpected internal error:', err)
         return NextResponse.json(
             { error: 'Internal server error', details: errMsg },
-            { status: 500, headers: corsHeaders }
+            { status: 500, headers: jsonHeaders }
         )
     }
 }

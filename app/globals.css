@@ -172,3 +172,28 @@
   border-radius: 50%;
   animation: pulseGlow 2s infinite ease-in-out;
 }
+
+/* Floating particles animation */
+@keyframes floatParticle {
+  0% {
+    transform: translate3d(0, 0, 0);
+    opacity: 0.15;
+  }
+  50% {
+    transform: translate3d(var(--x-offset), -80px, 0);
+    opacity: 0.4;
+  }
+  100% {
+    transform: translate3d(0, 0, 0);
+    opacity: 0.15;
+  }
+}
+
+.floating-particle {
+  position: absolute;
+  border-radius: 50%;
+  background-color: rgba(199, 210, 254, 0.4);
+  filter: blur(1px);
+  will-change: transform, opacity;
+  animation: floatParticle var(--duration) infinite ease-in-out;
+}

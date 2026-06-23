@@ -267,7 +267,6 @@ export default function GroupList({ initialGroups }: { initialGroups?: GroupProf
                         sortedCategories.map((catName) => (
                             <motion.section
                                 key={catName}
-                                layout
                                 initial={{ opacity: 0 }}
                                 animate={{ opacity: 1 }}
                                 exit={{ opacity: 0 }}
@@ -360,7 +359,7 @@ export default function GroupList({ initialGroups }: { initialGroups?: GroupProf
                                                 key={group.id}
                                                 initial={{ opacity: 0, y: 12 }}
                                                 animate={{ opacity: 1, y: 0 }}
-                                                transition={{ duration: 0.3, delay: Math.min(index * 0.05, 0.3) }}
+                                                transition={{ duration: 0.25, delay: Math.min(index * 0.02, 0.08) }}
                                             >
                                                 {status.isPreparing ? (
                                                     <div className="h-full block relative">{CardContent}</div>
